@@ -1,0 +1,383 @@
+#' Get information about longest transcripts in a GTF file
+#'
+#' This function uses a Python script to extract information about the longest
+#' transcripts in a GTF file. The script generates an output file containing the
+#' transcript ID, gene ID,... and length of the longest transcript for each gene.
+#'
+#' @param gtf_file path to the GTF file, ".gz" compressed format is acceptted.
+#' @param out_file path to the output file.
+#' @param pythonPath path to the Python executable (optional).
+#'
+#' @return This function does not return anything. It writes the output to a file.
+#'
+#' @importFrom reticulate py_config py_available use_python py_module_available
+#' py_install source_python
+#'
+#' @examples
+#' \dontrun{
+#' pre_longest_trans_info(gtf_file = "my_gtf_file.gtf",
+#'                        out_file = "longest_transcripts.txt",
+#'                        pythonPath = "/usr/bin/python3")
+#'}
+#'
+#' @export
+pre_longest_trans_info <- function(gtf_file = NULL,
+                                   out_file = NULL,
+                                   pythonPath = NULL){
+  reticulate::py_config()
+  if(reticulate::py_available() == FALSE){
+    message("Please install python first!")
+  }else{
+    if(!is.null(pythonPath)){
+      reticulate::use_python(pythonPath)
+    }
+
+    # check pyfaidx
+    if (!reticulate::py_module_available("gzip")) {
+      cat("Installing gzip ...\n")
+      reticulate::py_install("gzip")
+    }
+
+    # import gzip
+    tryCatch({
+      py <- reticulate::import("gzip")
+      # print(py)
+    }, error = function(e) {
+      cat("Error: gzip is not available.\n")
+    })
+
+    # run code
+    pyscript.path = system.file("extdata", "1_getLongestTransInfo.py", package = "RiboAutumn")
+    reticulate::source_python(pyscript.path)
+    suppressMessages(
+      reticulate::py$getLongestTransInfo(gtf_file = gtf_file,
+                                         longest_file = out_file)
+    )
+  }
+}
+
+
+#' pre_qc_data function
+#'
+#' This function performs quality control (QC) analysis on ribosome profiling
+#' data. The input is a SAM file generated from ribosome profiling data and the
+#' output is a QC result in a text file format.
+#'
+#' @param longest_trans_file A string specifying the path to the longest transcript
+#' file.
+#' @param sam_file A character vector specifying the paths to the SAM files.
+#' @param out_file A character vector specifying the paths to the output QC result
+#' files.
+#'
+#' @return The function does not return a value, but outputs QC results in text
+#' files.
+#'
+#' @importFrom JuliaCall julia_eval
+#'
+#' @examples
+#' \dontrun{
+#' pre_qc_data(longest_trans_file = "path/to/longestTransInfo.txt",
+#'             sam_file = c("path/to/sample1.sam", "path/to/sample2.sam"),
+#'             out_file = c("path/to/sample1_QC_result.txt", "path/to/sample2_QC_result.txt"))
+#' }
+#'
+#' @export
+pre_qc_data <- function(longest_trans_file = NULL,
+                        sam_file = NULL,
+                        out_file = NULL){
+  if(!dir.exists("1.QC-data")){
+    dir.create("1.QC-data")
+  }
+
+  JuliaCall::julia_setup(installJulia = TRUE)
+
+  JuliaCall::julia_library("XAM")
+
+  script_path <- paste0('include("',
+                        system.file("extdata", "prepareQCdata.jl",
+                                    package = "RiboAutumn"),
+                        '")',collapse = "")
+
+  prepareQCdata <- JuliaCall::julia_eval(script_path)
+
+  # excute function
+  outFile_tmp = paste("1.QC-data/",out_file,sep = "")
+  prepareQCdata(longestTransInfo = longest_trans_file,
+                samFile = paste0(sam_file,collapse = ","),
+                outFile = paste0(outFile_tmp,collapse = ","))
+  # return(NULL)
+}
+
+
+#' Calculate ribosome density data
+#'
+#' This function calculates the ribosome density data using XAM package in Julia.
+#'
+#' @param sam_file A character vector of SAM file paths.
+#' @param out_file A character vector of output file names.
+#' @param min The minimum length of reads to be considered for calculating density
+#' (default is 23).
+#' @param max The maximum length of reads to be considered for calculating density
+#' (default is 35).
+#'
+#' @return No explicit return value. Output files are written to "2.density-data" directory.
+#'
+#' @importFrom JuliaCall julia_setup julia_library julia_eval
+#'
+#' @examples
+#' \dontrun{
+#' # Calculate ribosome density data for a single SAM file
+#' pre_ribo_density_data(sam_file = "sample.sam", out_file = "sample_density.txt")
+#'
+#' # Calculate ribosome density data for multiple SAM files
+#' pre_ribo_density_data(sam_file = c("sample1.sam", "sample2.sam"),
+#'                       out_file = c("sample1_density.txt", "sample2_density.txt"))
+#' }
+#'
+#' @export
+pre_ribo_density_data <- function(sam_file = NULL,
+                                  out_file = NULL,
+                                  min = 23,max = 35){
+  if(!dir.exists("2.density-data")){
+    dir.create("2.density-data")
+  }
+
+  JuliaCall::julia_setup(installJulia = TRUE)
+
+  JuliaCall::julia_library("XAM")
+
+  script_path <- paste0('include("',
+                        system.file("extdata", "calculateRibosomeDensity.jl",
+                                    package = "RiboAutumn"),
+                        '")',collapse = "")
+
+  calculateRibosomeDensity <- JuliaCall::julia_eval(script_path)
+
+  # excute function
+  lapply(seq_along(sam_file), function(x){
+    outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
+    calculateRibosomeDensity(inputFile = sam_file[x],
+                             outputFile = outFile_tmp,
+                             min = min,
+                             max = max)
+    message(paste(sam_file[x]," has been processed!",sep = ""))
+  }) -> tmp
+  return(NULL)
+}
+
+
+#' Calculate RNA coverage data
+#'
+#' This function generates pre-processing RNA coverage data for a given SAM file.
+#'
+#' @param sam_file A character vector specifying the path(s) of the input SAM file(s).
+#' @param out_file A character vector specifying the name(s) of the output file(s).
+#' The output file(s) will be saved in the "2.density-data" directory.
+#'
+#' @return NULL
+#'
+#' @examples
+#' \dontrun{
+#' # Generate pre-processing RNA coverage data for a single SAM file
+#' pre_rna_coverage_data(sam_file = "/path/to/sam_file.sam", out_file = "coverage_data.txt")
+#'
+#' # Generate pre-processing RNA coverage data for multiple SAM files
+#' pre_rna_coverage_data(sam_file = c("/path/to/sam_file_1.sam", "/path/to/sam_file_2.sam"),
+#'                        out_file = c("coverage_data_1.txt", "coverage_data_2.txt"))
+#' }
+#'
+#' @export
+pre_rna_coverage_data <- function(sam_file = NULL,
+                                  out_file = NULL){
+  if(!dir.exists("2.density-data")){
+    dir.create("2.density-data")
+  }
+
+  JuliaCall::julia_setup(installJulia = TRUE)
+
+  JuliaCall::julia_library("XAM")
+
+  script_path <- paste0('include("',
+                        system.file("extdata", "CalculateRNACoverage.jl",
+                                    package = "RiboAutumn"),
+                        '")',collapse = "")
+
+  calculateRNACoverage <- JuliaCall::julia_eval(script_path)
+
+  # excute function
+  lapply(seq_along(sam_file), function(x){
+    outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
+    calculateRNACoverage(inputFile = sam_file[x],
+                         outputFile = outFile_tmp,
+                         type = "coverage")
+    message(paste(sam_file[x]," has been processed!",sep = ""))
+  }) -> tmp
+  return(NULL)
+}
+
+
+#' Calculate density data for a given gene annotation file
+#'
+#' This function calculates density data for a given gene annotation file using
+#' the XAM package in Julia. It writes the output files to the "2.density-data"
+#' directory.
+#'
+#' @param gene_anno A gene annotation file in the format accepted by XAM
+#' (default is NULL).
+#' @param density_file A character vector of input file names for which to
+#' calculate density data (default is NULL).
+#' @param out_file A character vector of output file names corresponding to each
+#' input file (default is NULL). The length of this vector must be equal to the
+#' length of \code{density_file}.
+#'
+#' @return This function does not return anything; it writes the output files to
+#' disk.
+#'
+#' @importFrom JuliaCall julia_eval julia_library julia_setup
+#'
+#' @examples
+#' \dontrun{
+#' # Calculate density data for a single input file
+#' pre_gene_trans_density(gene_anno = "gene_annotation.txt",
+#'                        density_file = "input_file.txt",
+#'                        out_file = "output_file.txt")
+#'
+#' # Calculate density data for multiple input files
+#' pre_gene_trans_density(gene_anno = "gene_annotation.txt",
+#'                        density_file = c("input_file1.txt", "input_file2.txt"),
+#'                        out_file = c("output_file1.txt", "output_file2.txt"))
+#' }
+#'
+#' @export
+pre_gene_trans_density <- function(gene_anno = NULL,
+                                   density_file = NULL,
+                                   out_file = NULL){
+  if(!dir.exists("2.density-data")){
+    dir.create("2.density-data")
+  }
+
+  JuliaCall::julia_setup(installJulia = TRUE)
+
+  JuliaCall::julia_library("XAM")
+
+  script_path <- paste0('include("',
+                        system.file("extdata", "GetGeneSinglePosDensity.jl",
+                                    package = "RiboAutumn"),
+                        '")',collapse = "")
+
+  getGeneSinglePosDensity <- JuliaCall::julia_eval(script_path)
+
+  # excute function
+  lapply(seq_along(density_file), function(x){
+    inputFile_tmp = paste("2.density-data/",density_file[x],sep = "")
+    outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
+    getGeneSinglePosDensity(geneInfo = gene_anno,
+                            inputFile = inputFile_tmp,
+                            outputFile = outFile_tmp)
+    message(paste(inputFile_tmp," has been processed!"))
+  }) -> tmp
+  return(NULL)
+}
+
+
+
+#' load_qc_data function
+#'
+#' A function to load quality control (QC) data from files and create a merged
+#' data frame.
+#'
+#' @param sample_name A vector of file names for the samples to be loaded.
+#' @param group_name The name of the group to which the loaded samples belong.
+#'
+#' @return Returns a merged data frame containing QC data for all loaded samples.
+#'
+#' @importFrom plyr ldply
+#' @importFrom data.table fread
+#' @export
+load_qc_data <- function(sample_name = NULL,
+                         group_name = NULL){
+  # load data
+  file <- list.files('1.QC-data/','.txt')
+  message("QC input files: ")
+  message(paste0(file,sep = "\n"))
+
+  if(is.null(sample_name)){
+    sample_name <- file
+  }else{
+    sample_name <- sample_name
+  }
+
+  if(is.null(group_name)){
+    group_name <- NA
+  }else{
+    group_name <- group_name
+  }
+
+  plyr::ldply(1:length(file),function(x){
+    tmp <- data.table::fread(paste('1.QC-data/',file[x],sep = ''))
+    colnames(tmp) <- c('length','framest','relst','framesp','relsp','feature','counts')
+    # add sample
+    tmp$sample <- sapply(strsplit(sample_name[x],split = '\\.'),'[',1)
+    # add group
+    tmp$group <- group_name[x]
+    return(tmp)
+  }) -> dfqc
+}
+
+
+#' Load gene expression data from ribo and rna files
+#'
+#' This function reads in gene expression data from ribo and rna files, filters
+#' by a given gene list, and merges them into a single data frame. The resulting
+#' data frame includes columns for gene name, transcript ID, position, density,
+#' sample name, and type of expression data (ribo or rna).
+#'
+#' @param ribo_file A character vector specifying the names of ribo file(s).
+#' @param rna_file A character vector specifying the names of rna file(s).
+#' @param sample_name A character vector specifying the name(s) of the sample(s).
+#' @param gene_list A character vector specifying the gene names to be included.
+#'
+#' @return A data frame containing gene expression data from both ribo and rna
+#' files, filtered by the specified gene list and merged into a single data frame.
+#'
+#' @examples
+#' \dontrun{
+#' load_track_data(ribo_file = c("file1_ribo.txt", "file2_ribo.txt"),
+#'                 rna_file = c("file1_rna.txt", "file2_rna.txt"),
+#'                 sample_name = c("sample1", "sample2","sample1", "sample2"),
+#'                 gene_list = c("gene1", "gene2"))
+#' }
+#'
+#' @export
+load_track_data <- function(ribo_file = NULL,
+                            rna_file = NULL,
+                            sample_name = NULL,
+                            gene_list = NULL){
+  # ============================================================================
+  # extract data
+  # ============================================================================
+  plyr::ldply(1:length(ribo_file),function(x){
+    # ribo denisty
+    ribo_tmp <- data.table::fread(paste('2.density-data/',ribo_file[x],sep = ''))
+    # add colnames
+    colnames(ribo_tmp) <- c('gene_name',"trans_id",'transpos','density')
+    # filter
+    ribo_tmp <- ribo_tmp %>% dplyr::filter(gene_name %in% gene_list)
+    # add type
+    ribo_tmp$type <- 'ribo'
+
+    # rna coverage
+    rna_tmp <- data.table::fread(paste('2.density-data/',rna_file[x],sep = ''))
+    # add colnames
+    colnames(rna_tmp) <- c('gene_name',"trans_id",'transpos','density')
+    # filter
+    rna_tmp <- rna_tmp %>% dplyr::filter(gene_name %in% gene_list)
+    # add type
+    rna_tmp$type <- 'rna'
+
+    # merge
+    mer <- rbind(ribo_tmp,rna_tmp)
+    mer$sample <- sample_name[x]
+    return(mer)
+  }) -> df_gene
+}

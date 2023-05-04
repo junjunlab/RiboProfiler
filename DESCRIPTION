@@ -1,0 +1,27 @@
+Package: RiboAutumn
+Title: Ribo-seq Data Analysis and Visualization
+Version: 0.0.1
+Author: Jun Zhang
+Maintainer: Jun Zhang <3219030654@stu.cpu.edu.cn>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Imports: 
+    data.table,
+    dplyr,
+    ggh4x,
+    ggnewscale,
+    ggplot2,
+    grid,
+    JuliaCall,
+    magrittr,
+    plyr,
+    reticulate,
+    rlang,
+    zplyr
+Remotes:
+  burchill/zplyr
+
