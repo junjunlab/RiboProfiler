@@ -7,6 +7,10 @@ workflow more easier and concise for R users. Also supporting multiple kinds of 
 
 <!-- badges: end -->
 
+## Requierment
+
+> Please make sure you have installed **julia** and **python** first.
+
 ## Installation
 
 You can install the development version of RiboProfiler like so:
