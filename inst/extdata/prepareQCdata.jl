@@ -1,10 +1,14 @@
 # load package
 using XAM
 
+##############################################################################################################
+# for mapping to genome qc analysis
+##############################################################################################################
+
 ###################################################################
 # 1.load gene fearures positions and transform into trans position
 ###################################################################
-function prepareQCdata(;longestTransInfo,samFile,outFile)
+function prepareQCdata(;longestTransInfo,samFile,outFile,seqType)
     geneinfoDict = Dict{String, Vector{Int}}()
 
     open(longestTransInfo, "r") do geneinfo
@@ -42,26 +46,27 @@ function prepareQCdata(;longestTransInfo,samFile,outFile)
         end
     end
     
-    println("Transforming genomic positions into transcriptome positions has been done successfully.")
+    display("Transforming genomic positions into transcriptome positions has been done successfully.")
 
     ################################################################
     # 2.calculate frame on each gene and distance to start/stop codon
     ################################################################
 
     # define function
-    function RiboQcAnalysis(inputFile,outputFile)
+    function RiboQcAnalysis(inputFile,outputFile;seq_type)
         
         # save in dict
         frame_dict = Dict{String,Int64}()
 
         # open sam file
         reader = open(SAM.Reader,inputFile)
-        record = SAM.Record()
+        # record = SAM.Record()
 
         # loop
-        while !eof(reader)
-            empty!(record)
-            read!(reader, record)
+        # while !eof(reader)
+        #     empty!(record)
+        #     read!(reader, record)
+        for record in reader
             # do something
             if SAM.ismapped(record) # (remove flag4)
                 # tags
@@ -71,19 +76,34 @@ function prepareQCdata(;longestTransInfo,samFile,outFile)
                 flag = SAM.flag(record)
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
-                if flag == 16
-                    # flag 16 reads from + stand
-                    # read key
-                    readKey = join([refname,align_pos],"|")
-                elseif flag == 0
-                    # flag 0 reads from - stand
-                    end3Pos = align_pos + read_length - 1
-                    # read key
-                    readKey = join([refname,end3Pos],"|")
-                else
-                    println("There are other flags!")
+                if seq_type == "singleEnd"
+                    if flag == 16
+                        # flag 0 reads from - stand
+                        end3Pos = align_pos + read_length - 1
+                        # read key
+                        readKey = join([refname,end3Pos],"|")
+                    elseif flag == 0
+                        # flag 16 reads from + stand
+                        # read key
+                        readKey = join([refname,align_pos],"|")
+                    else
+                        println("There are other flags!")
+                    end
+                elseif seq_type == "pairedEnd"
+                    if flag == 16
+                        # flag 16 reads from + stand
+                        # read key
+                        readKey = join([refname,align_pos],"|")
+                    elseif flag == 0
+                        # flag 0 reads from - stand
+                        end3Pos = align_pos + read_length - 1
+                        # read key
+                        readKey = join([refname,end3Pos],"|")
+                    else
+                        println("There are other flags!")
+                    end
                 end
-                
+
                 # get relative distance from start/stop codon and frame information
                 if haskey(geneinfoDict,readKey)
 
@@ -129,6 +149,7 @@ function prepareQCdata(;longestTransInfo,samFile,outFile)
             end
         end
 
+        close(reader)
         ################################################################
         # 3.output results
         ################################################################
@@ -141,14 +162,110 @@ function prepareQCdata(;longestTransInfo,samFile,outFile)
     end
 
     # loop for output
-    println("Processing sam files...")
+    display("Processing sam files...")
     samFile = [s for s in split(samFile,",")]
     outFile = [o for o in split(outFile,",")]
     for i in range(1,length(samFile))
-        RiboQcAnalysis(samFile[i],outFile[i])
+        RiboQcAnalysis(samFile[i],outFile[i],seq_type = seqType)
         tmp_name = samFile[i]
-        println("$tmp_name has been processed.")
+        display("$tmp_name has been processed.")
     end
 end
 
 
+##############################################################################################################
+# for mapping to transcriptome qc analysis
+##############################################################################################################
+
+# define function
+function prepareQCdata_ontrans(;samFile,outFile,seqType)
+    # save in dict
+    frame_dict = Dict{String,Int64}()
+
+    # open sam file
+    reader = open(SAM.Reader,samFile)
+    # record = SAM.Record()
+
+    # loop
+    # while !eof(reader)
+    #     empty!(record)
+    #     read!(reader, record)
+    for record in reader
+        # do something
+        if SAM.ismapped(record)
+            # tags
+            refname = SAM.refname(record)
+            align_pos = SAM.position(record)
+            read_length = SAM.seqlength(record)
+            flag = SAM.flag(record)
+
+            # flag0(-strand gene) and flag16(+strand gene) for read1
+            if seqType == "singleEnd"
+                if flag == 0
+                    exact_pos = align_pos
+                elseif flag == 16
+                    exact_pos = align_pos + read_length - 1
+                else
+                    println("There are other flags!")
+                end
+            elseif seqType == "pairedEnd"
+                if flag == 0
+                    exact_pos = align_pos + read_length - 1
+                elseif flag == 16
+                    exact_pos = align_pos
+                else
+                    println("There are other flags!")
+                end
+            end
+            
+
+            # start and stop codon position
+            start_codon_pos = parse(Int,split(refname,"|")[4])
+            stop_codon_pos = parse(Int,split(refname,"|")[5])
+
+            # relative distance
+            rel2st = exact_pos - start_codon_pos
+            rel2sp = exact_pos - (stop_codon_pos + 1)
+
+            # assign frame
+            frame_st = abs(rel2st)%3
+            frame_sp = abs(rel2sp)%3
+
+            # read center position
+            if flag == 16
+                align_pos_center = exact_pos + (read_length ÷ 2)
+            elseif flag == 0
+                align_pos_center = exact_pos - (read_length ÷ 2)
+            else
+                println("There are other flags!")
+            end
+
+            # assign 5'UTR/CDS/3'UTR features
+            if align_pos_center < start_codon_pos
+                ftype = 2 # 5'UTR
+            elseif start_codon_pos <= align_pos_center <= stop_codon_pos
+                ftype = 3 # CDS
+            else align_pos_center > stop_codon_pos
+                ftype = 1 # 3'UTR
+            end
+
+            # key
+            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype],"\t")
+            
+            # init dict and count
+            if !haskey(frame_dict,key)
+                frame_dict[key] = 1
+            else
+                frame_dict[key] += 1
+            end
+        end
+    end
+
+    close(reader)
+    # output file
+    outfile = open(outFile,"w")
+    for (key,val) in frame_dict
+        write(outfile,"$key\t$val\n")
+    end
+    close(outfile)
+end

@@ -46,11 +46,31 @@ pre_longest_trans_info <- function(gtf_file = NULL,
       cat("Error: gzip is not available.\n")
     })
 
+    # sort gtf first
+    gtf <- rtracklayer::import.gff(gtf_file,format = "gtf")
+
+    # sort by strand
+    gtf_plus <- gtf |> data.frame() |>
+      dplyr::filter(strand %in% "+") |>
+      dplyr::arrange(seqnames,gene_name,gene_id,transcript_id,type,start,end)
+
+    gtf_neg <- gtf |> data.frame() |>
+      dplyr::filter(strand %in% "-") |>
+      dplyr::arrange(seqnames,gene_name,gene_id,transcript_id,type,dplyr::desc(start),dplyr::desc(end))
+
+    sorted_gtf <- rbind(gtf_plus,gtf_neg)
+
+    # output
+    output_name = paste(gtf_file,".sorted.gtf",sep = "")
+    rtracklayer::export.gff(sorted_gtf,
+                            con = output_name,
+                            format = "gtf")
+
     # run code
-    pyscript.path = system.file("extdata", "1_getLongestTransInfo.py", package = "RiboAutumn")
+    pyscript.path = system.file("extdata", "getLongestTransInfo.py", package = "RiboProfiler")
     reticulate::source_python(pyscript.path)
     suppressMessages(
-      reticulate::py$getLongestTransInfo(gtf_file = gtf_file,
+      reticulate::py$getLongestTransInfo(gtf_file = output_name,
                                          longest_file = out_file)
     )
   }
@@ -63,11 +83,13 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #' data. The input is a SAM file generated from ribosome profiling data and the
 #' output is a QC result in a text file format.
 #'
+#' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
 #' @param longest_trans_file A string specifying the path to the longest transcript
 #' file.
 #' @param sam_file A character vector specifying the paths to the SAM files.
 #' @param out_file A character vector specifying the paths to the output QC result
 #' files.
+#' @param seq_type The sequencing type for fastq files, "singleEnd" or "pairedEnd".
 #'
 #' @return The function does not return a value, but outputs QC results in text
 #' files.
@@ -82,9 +104,14 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #' }
 #'
 #' @export
-pre_qc_data <- function(longest_trans_file = NULL,
+pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
+                        longest_trans_file = NULL,
                         sam_file = NULL,
-                        out_file = NULL){
+                        out_file = NULL,
+                        seq_type = c("pairedEnd","singleEnd")){
+  mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
+  seq_type <- match.arg(seq_type,c("pairedEnd","singleEnd"))
+
   if(!dir.exists("1.QC-data")){
     dir.create("1.QC-data")
   }
@@ -95,16 +122,33 @@ pre_qc_data <- function(longest_trans_file = NULL,
 
   script_path <- paste0('include("',
                         system.file("extdata", "prepareQCdata.jl",
-                                    package = "RiboAutumn"),
+                                    package = "RiboProfiler"),
                         '")',collapse = "")
 
-  prepareQCdata <- JuliaCall::julia_eval(script_path)
+  # choose function
+  JuliaCall::julia_eval(script_path)
+  if(mapping_type == "genome"){
+    prepareQCdata <- JuliaCall::julia_eval("prepareQCdata")
 
-  # excute function
-  outFile_tmp = paste("1.QC-data/",out_file,sep = "")
-  prepareQCdata(longestTransInfo = longest_trans_file,
-                samFile = paste0(sam_file,collapse = ","),
-                outFile = paste0(outFile_tmp,collapse = ","))
+    # excute function
+    outFile_tmp = paste("1.QC-data/",out_file,sep = "")
+    prepareQCdata(longestTransInfo = longest_trans_file,
+                  samFile = paste0(sam_file,collapse = ","),
+                  outFile = paste0(outFile_tmp,collapse = ","),
+                  seqType = seq_type)
+  }else if(mapping_type == "transcriptome"){
+    prepareQCdata <- JuliaCall::julia_eval("prepareQCdata_ontrans")
+
+    lapply(1:length(sam_file), function(x){
+      # excute function
+      outFile_tmp = paste("1.QC-data/",out_file[x],sep = "")
+      prepareQCdata(samFile = sam_file[x],
+                    outFile = outFile_tmp,
+                    seqType = seq_type)
+      message(paste(sam_file[x]," has been processed!",sep = ""))
+    }) -> tmp
+  }
+
   # return(NULL)
 }
 
@@ -113,6 +157,7 @@ pre_qc_data <- function(longest_trans_file = NULL,
 #'
 #' This function calculates the ribosome density data using XAM package in Julia.
 #'
+#' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
 #' @param sam_file A character vector of SAM file paths.
 #' @param out_file A character vector of output file names.
 #' @param min The minimum length of reads to be considered for calculating density
@@ -135,9 +180,12 @@ pre_qc_data <- function(longest_trans_file = NULL,
 #' }
 #'
 #' @export
-pre_ribo_density_data <- function(sam_file = NULL,
+pre_ribo_density_data <- function(mapping_type = c("genome","transcriptome"),
+                                  sam_file = NULL,
                                   out_file = NULL,
                                   min = 23,max = 35){
+  mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
+
   if(!dir.exists("2.density-data")){
     dir.create("2.density-data")
   }
@@ -147,11 +195,17 @@ pre_ribo_density_data <- function(sam_file = NULL,
   JuliaCall::julia_library("XAM")
 
   script_path <- paste0('include("',
-                        system.file("extdata", "calculateRibosomeDensity.jl",
-                                    package = "RiboAutumn"),
+                        system.file("extdata", "CalculateRibosomeDensity.jl",
+                                    package = "RiboProfiler"),
                         '")',collapse = "")
 
-  calculateRibosomeDensity <- JuliaCall::julia_eval(script_path)
+  # choose function
+  JuliaCall::julia_eval(script_path)
+  if(mapping_type == "genome"){
+    calculateRibosomeDensity <- JuliaCall::julia_eval("CalculateRibosomeDensity")
+  }else if(mapping_type == "transcriptome"){
+    calculateRibosomeDensity <- JuliaCall::julia_eval("CalculateRibosomeDensity_ontrans")
+  }
 
   # excute function
   lapply(seq_along(sam_file), function(x){
@@ -162,6 +216,7 @@ pre_ribo_density_data <- function(sam_file = NULL,
                              max = max)
     message(paste(sam_file[x]," has been processed!",sep = ""))
   }) -> tmp
+
   return(NULL)
 }
 
@@ -171,6 +226,7 @@ pre_ribo_density_data <- function(sam_file = NULL,
 #' This function generates pre-processing RNA coverage data for a given SAM file.
 #'
 #' @param sam_file A character vector specifying the path(s) of the input SAM file(s).
+#' @param bam_file If using sam file runs slowly, try using bam file instead.
 #' @param out_file A character vector specifying the name(s) of the output file(s).
 #' The output file(s) will be saved in the "2.density-data" directory.
 #'
@@ -188,31 +244,62 @@ pre_ribo_density_data <- function(sam_file = NULL,
 #'
 #' @export
 pre_rna_coverage_data <- function(sam_file = NULL,
+                                  bam_file = NULL,
                                   out_file = NULL){
   if(!dir.exists("2.density-data")){
     dir.create("2.density-data")
   }
 
-  JuliaCall::julia_setup(installJulia = TRUE)
+  # check input file type
+  if(!is.null(bam_file)){
+    lapply(seq_along(bam_file), function(x){
+      outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
 
-  JuliaCall::julia_library("XAM")
+      # bam total mapped reads
+      total_mapped_reads <- sum(Rsamtools::idxstatsBam(bam_file[x])$mapped)
 
-  script_path <- paste0('include("',
-                        system.file("extdata", "CalculateRNACoverage.jl",
-                                    package = "RiboAutumn"),
-                        '")',collapse = "")
+      # params
+      scanbamparam <- Rsamtools::ScanBamParam(flag = Rsamtools::scanBamFlag(isUnmappedQuery = FALSE))
+      pileupparam <- Rsamtools::PileupParam(max_depth = 10000000,
+                                            distinguish_strands = FALSE,
+                                            distinguish_nucleotides = FALSE)
 
-  calculateRNACoverage <- JuliaCall::julia_eval(script_path)
+      # get depth
+      depth <- Rsamtools::pileup(file = bam_file[x],
+                                 pileupParam = pileupparam,
+                                 scanBamParam = scanbamparam )
 
-  # excute function
-  lapply(seq_along(sam_file), function(x){
-    outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
-    calculateRNACoverage(inputFile = sam_file[x],
-                         outputFile = outFile_tmp,
-                         type = "coverage")
-    message(paste(sam_file[x]," has been processed!",sep = ""))
-  }) -> tmp
-  return(NULL)
+      # rpm normalization
+      depth$rpm <- (depth$count / total_mapped_reads)*10^6
+
+      # output
+      data.table::fwrite(depth,file = outFile_tmp,sep = "\t",col.names = FALSE,nThread = parallel::detectCores())
+
+      message(paste(bam_file[x]," has been processed!",sep = ""))
+    }) -> tmp
+    return(NULL)
+  }else if(!is.null(sam_file)){
+    JuliaCall::julia_setup(installJulia = TRUE)
+
+    JuliaCall::julia_library("XAM")
+
+    script_path <- paste0('include("',
+                          system.file("extdata", "CalculateRNACoverage.jl",
+                                      package = "RiboProfiler"),
+                          '")',collapse = "")
+
+    calculateRNACoverage <- JuliaCall::julia_eval(script_path)
+
+    # excute function
+    lapply(seq_along(sam_file), function(x){
+      outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
+      calculateRNACoverage(inputFile = sam_file[x],
+                           outputFile = outFile_tmp,
+                           type = "coverage")
+      message(paste(sam_file[x]," has been processed!",sep = ""))
+    }) -> tmp
+    return(NULL)
+  }
 }
 
 
@@ -262,7 +349,7 @@ pre_gene_trans_density <- function(gene_anno = NULL,
 
   script_path <- paste0('include("',
                         system.file("extdata", "GetGeneSinglePosDensity.jl",
-                                    package = "RiboAutumn"),
+                                    package = "RiboProfiler"),
                         '")',collapse = "")
 
   getGeneSinglePosDensity <- JuliaCall::julia_eval(script_path)
@@ -302,7 +389,7 @@ load_qc_data <- function(sample_name = NULL,
   message(paste0(file,sep = "\n"))
 
   if(is.null(sample_name)){
-    sample_name <- file
+    sample_name <- sapply(strsplit(file,split = '\\.'),'[',1)
   }else{
     sample_name <- sample_name
   }
@@ -317,7 +404,7 @@ load_qc_data <- function(sample_name = NULL,
     tmp <- data.table::fread(paste('1.QC-data/',file[x],sep = ''))
     colnames(tmp) <- c('length','framest','relst','framesp','relsp','feature','counts')
     # add sample
-    tmp$sample <- sapply(strsplit(sample_name[x],split = '\\.'),'[',1)
+    tmp$sample <- sample_name[x]
     # add group
     tmp$group <- group_name[x]
     return(tmp)
@@ -332,6 +419,7 @@ load_qc_data <- function(sample_name = NULL,
 #' data frame includes columns for gene name, transcript ID, position, density,
 #' sample name, and type of expression data (ribo or rna).
 #'
+#' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
 #' @param ribo_file A character vector specifying the names of ribo file(s).
 #' @param rna_file A character vector specifying the names of rna file(s).
 #' @param sample_name A character vector specifying the name(s) of the sample(s).
@@ -349,35 +437,361 @@ load_qc_data <- function(sample_name = NULL,
 #' }
 #'
 #' @export
-load_track_data <- function(ribo_file = NULL,
+load_track_data <- function(mapping_type = c("genome","transcriptome"),
+                            ribo_file = NULL,
                             rna_file = NULL,
                             sample_name = NULL,
                             gene_list = NULL){
+  mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
+
   # ============================================================================
   # extract data
   # ============================================================================
-  plyr::ldply(1:length(ribo_file),function(x){
-    # ribo denisty
-    ribo_tmp <- data.table::fread(paste('2.density-data/',ribo_file[x],sep = ''))
-    # add colnames
-    colnames(ribo_tmp) <- c('gene_name',"trans_id",'transpos','density')
-    # filter
-    ribo_tmp <- ribo_tmp %>% dplyr::filter(gene_name %in% gene_list)
-    # add type
-    ribo_tmp$type <- 'ribo'
+  if(mapping_type == "genome"){
+    plyr::ldply(1:length(ribo_file),function(x){
+      # ribo denisty
+      # ribo_tmp <- data.table::fread(paste('2.density-data/',ribo_file[x],sep = ''),sep = "\t")
+      ribo_tmp <- vroom::vroom(paste('2.density-data/',ribo_file[x],sep = ''),
+                               delim = "\t",show_col_types = FALSE,
+                               col_names = c('gene_name',"trans_id",'transpos','density'))
 
-    # rna coverage
-    rna_tmp <- data.table::fread(paste('2.density-data/',rna_file[x],sep = ''))
-    # add colnames
-    colnames(rna_tmp) <- c('gene_name',"trans_id",'transpos','density')
-    # filter
-    rna_tmp <- rna_tmp %>% dplyr::filter(gene_name %in% gene_list)
-    # add type
-    rna_tmp$type <- 'rna'
+      # add colnames
+      # colnames(ribo_tmp) <- c('gene_name',"trans_id",'transpos','density')
+      # filter
+      ribo_tmp <- ribo_tmp %>% dplyr::filter(gene_name %in% gene_list)
+      # add type
+      ribo_tmp$type <- 'ribo'
 
-    # merge
-    mer <- rbind(ribo_tmp,rna_tmp)
-    mer$sample <- sample_name[x]
-    return(mer)
-  }) -> df_gene
+      if(!is.null(rna_file)){
+        # rna coverage
+        # rna_tmp <- data.table::fread(paste('2.density-data/',rna_file[x],sep = ''),sep = "\t")
+
+        rna_tmp <- vroom::vroom(paste('2.density-data/',rna_file[x],sep = ''),
+                                delim = "\t",show_col_types = FALSE,
+                                col_names = c('gene_name',"trans_id",'transpos','density'))
+        # add colnames
+        # colnames(rna_tmp) <- c('gene_name',"trans_id",'transpos','density')
+        # filter
+        rna_tmp <- rna_tmp %>% dplyr::filter(gene_name %in% gene_list)
+        # add type
+        rna_tmp$type <- 'rna'
+
+        # merge
+        mer <- rbind(ribo_tmp,rna_tmp)
+      }else{
+        mer <- ribo_tmp
+      }
+      mer$sample <- sample_name[x]
+      return(mer)
+    }) -> df_gene
+  }else if(mapping_type == "transcriptome"){
+    plyr::ldply(1:length(ribo_file),function(x){
+      # ribo denisty
+      # ribo_tmp <- data.table::fread(paste('2.density-data/',ribo_file[x],sep = ''),
+      #                               sep = "\t")[,c(1,2,4)]
+      ribo_tmp <- vroom::vroom(paste('2.density-data/',ribo_file[x],sep = ''),
+                               delim = "\t",show_col_types = FALSE,
+                               col_names = c('id',"transpos",'none','density'),
+                               col_select = c('id','transpos','density'))
+
+      # add colnames
+      # colnames(ribo_tmp) <- c('id','transpos','density')
+      ribo_tmp[,c("gene_name") := data.table::tstrsplit(id,"|",fixed = TRUE)[1]]
+      ribo_tmp[,c("trans_id") := data.table::tstrsplit(id,"|",fixed = TRUE)[3]]
+      ribo_tmp <- ribo_tmp[,c("gene_name","trans_id",'transpos','density')]
+
+      # filter
+      ribo_tmp <- ribo_tmp %>% dplyr::filter(gene_name %in% gene_list)
+      # add type
+      ribo_tmp$type <- 'ribo'
+
+      if(!is.null(rna_file)){
+        # rna coverage
+        # rna_tmp <- data.table::fread(paste('2.density-data/',rna_file[x],sep = ''),
+        #                              sep = "\t")[,c(1,2,4)]
+        rna_tmp <- vroom::vroom(paste('2.density-data/',rna_file[x],sep = ''),
+                                delim = "\t",show_col_types = FALSE,
+                                col_names = c('id',"transpos",'none','density'),
+                                col_select = c('id','transpos','density'))
+
+        # add colnames
+        # colnames(rna_tmp) <- c('id','transpos','density')
+        rna_tmp[,c("gene_name") := data.table::tstrsplit(id,"|",fixed = TRUE)[1]]
+        rna_tmp[,c("trans_id") := data.table::tstrsplit(id,"|",fixed = TRUE)[3]]
+        rna_tmp <- rna_tmp[,c("gene_name","trans_id",'transpos','density')]
+
+        # filter
+        rna_tmp <- rna_tmp %>% dplyr::filter(gene_name %in% gene_list)
+        # add type
+        rna_tmp$type <- 'rna'
+
+        # merge
+        mer <- rbind(ribo_tmp,rna_tmp)
+      }else{
+        mer <- ribo_tmp
+      }
+      mer$sample <- sample_name[x]
+      return(mer)
+    }) -> df_gene
+  }
+}
+
+
+#' Calculate Metagene Data
+#'
+#' This function calculates metagene data using ribosome density files and gene
+#' annotation.
+#'
+#' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
+#' @param gene_anno A data.frame containing gene annotation information.
+#' @param density_file A character vector of file names for ribosome density data.
+#' @param out_file A character vector of output file names for metagene data.
+#' @param mode A character indicating the mode of analysis, "st" or "sp".
+#' Default is "st".
+#' @param type A character indicating the type of analysis. Default is "codon".
+#' @param cdslength An integer indicating the length of CDS. Default is 600.
+#' @param expression An integer indicating the minimum expression value. Default is 30.
+#' @param exclude An integer indicating the number of nucleotides to exclude from
+#' both ends of the coding region. Default is 90.
+#'
+#' @return NULL
+#'
+#' @examples
+#' # Assume that we have a gene annotation data frame called 'gene_annot' and two ribosome density
+#' # files called 'file1.bam' and 'file2.bam' in '2.density-data/' directory. The following code
+#' # will calculate the metagene data and save the results in '3.metagene-data/' directory with
+#' # names 'metagene1.tsv' and 'metagene2.tsv':
+#' #
+#' # pre_metagene_data(gene_anno = gene_annot,
+#' #                   density_file = c("file1.bam", "file2.bam"),
+#' #                   out_file = c("metagene1.txt", "metagene2.txt"))
+#'
+#' @export
+pre_metagene_data <- function(mapping_type = c("genome","transcriptome"),
+                              gene_anno = NULL,
+                              density_file = NULL,
+                              out_file = NULL,
+                              mode = c("st","sp"),
+                              type = "codon",
+                              cdslength = 600,
+                              expression = 30,
+                              exclude = 90){
+  mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
+  mode <- match.arg(mode,c("st","sp"))
+
+  if(!dir.exists("3.metagene-data")){
+    dir.create("3.metagene-data")
+  }
+
+  JuliaCall::julia_setup(installJulia = TRUE)
+
+  JuliaCall::julia_library("DataStructures")
+
+  script_path <- paste0('include("',
+                        system.file("extdata", "MetageneAnalysis.jl",
+                                    package = "RiboProfiler"),
+                        '")',collapse = "")
+
+  # choose function
+  JuliaCall::julia_eval(script_path)
+  if(mapping_type == "genome"){
+    MetageneAnalysis <- JuliaCall::julia_eval("MetageneAnalysis")
+
+    # excute function
+    lapply(seq_along(density_file), function(x){
+      inputFile_tmp = paste("2.density-data/",density_file[x],sep = "")
+      outFile_tmp = paste("3.metagene-data/",out_file[x],sep = "")
+      MetageneAnalysis(geneInfo = gene_anno,
+                       inputFile = inputFile_tmp,
+                       outputFile = outFile_tmp,
+                       mode = mode,
+                       type = type,
+                       cdslength = as.integer(cdslength),
+                       expression = as.integer(expression),
+                       exclude = as.integer(exclude))
+      message(paste(inputFile_tmp," has been processed!"))
+    }) -> tmp
+  }else if(mapping_type == "transcriptome"){
+    MetageneAnalysis <- JuliaCall::julia_eval("MetageneAnalysis_ontrans")
+
+    # excute function
+    lapply(seq_along(density_file), function(x){
+      inputFile_tmp = paste("2.density-data/",density_file[x],sep = "")
+      outFile_tmp = paste("3.metagene-data/",out_file[x],sep = "")
+      MetageneAnalysis(inputFile = inputFile_tmp,
+                       outputFile = outFile_tmp,
+                       mode = mode,
+                       type = type,
+                       cdslength = as.integer(cdslength),
+                       expression = as.integer(expression),
+                       exclude = as.integer(exclude))
+      message(paste(inputFile_tmp," has been processed!"))
+    }) -> tmp
+  }
+
+
+  return(NULL)
+}
+
+#' Load Metagene Data
+#'
+#' This function loads metagene data from text files in the specified directory.
+#'
+#' @param sample_name A character vector specifying the names of the input files.
+#' If NULL, all files in the directory will be used.
+#' @param group_name A character vector specifying the group names for each set
+#' of input files. If NULL, no grouping will be performed.
+#'
+#' @return A data frame containing the loaded metagene data with columns for
+#' position, density, sample name, and group name.
+#'
+#' @examples
+#' \dontrun{
+#' load_metagene_data(sample_name = c("sample1.txt", "sample2.txt"))
+#' }
+#'
+#' @export
+load_metagene_data <- function(sample_name = NULL,
+                               group_name = NULL){
+  # load data
+  file <- list.files('3.metagene-data/','.txt')
+  message("MetaGene input files: ")
+  message(paste0(file,sep = "\n"))
+
+  if(is.null(sample_name)){
+    sample_name <- sapply(strsplit(file,split = '\\.'),'[',1)
+  }else{
+    sample_name <- sample_name
+  }
+
+  if(is.null(group_name)){
+    group_name <- NA
+  }else{
+    group_name <- group_name
+  }
+
+  plyr::ldply(1:length(file),function(x){
+    tmp <- data.table::fread(paste('3.metagene-data/',file[x],sep = ''))
+    colnames(tmp) <- c('pos','density')
+    # add sample
+    tmp$sample <- sample_name[x]
+    # add group
+    tmp$group <- group_name[x]
+    return(tmp)
+  }) -> dfmeta
+}
+
+
+#' Preprocess SAM files to calculate count and TPM data
+#'
+#' This function takes SAM files as input, processes it using JuliaCall package
+#' and generates count and TPM data.
+#'
+#' @param sam_file A character vector of SAM file paths.
+#' @param out_file A character vector of output file names.
+#' @param type Specifies the type of the input file. Default is 'ribo'.
+#' @return NULL
+#' @examples
+#' \dontrun{
+#' pre_count_tpm_data(sam_file = c("path/to/samfile1.sam","path/to/samfile2.sam"),
+#'                    out_file = c("output1.txt","output2.txt"),
+#'                    type = "rna")
+#' }
+#'
+#' @export
+pre_count_tpm_data <- function(sam_file = NULL,
+                               out_file = NULL,
+                               type = c("ribo","rna")){
+  type <- match.arg(type,c("ribo","rna"))
+
+  if(!dir.exists("4.expression-data")){
+    dir.create("4.expression-data")
+  }
+
+  JuliaCall::julia_setup(installJulia = TRUE)
+
+  JuliaCall::julia_library("XAM")
+
+  script_path <- paste0('include("',
+                        system.file("extdata", "CalculateCountTPM.jl",
+                                    package = "RiboProfiler"),
+                        '")',collapse = "")
+
+  # choose function
+  CalculateCountTPM <- JuliaCall::julia_eval(script_path)
+
+  # excute function
+  lapply(seq_along(sam_file), function(x){
+    outFile_tmp = paste("4.expression-data/",out_file[x],sep = "")
+    CalculateCountTPM(inputFile = sam_file[x],
+                      outputFile = outFile_tmp,
+                      inputType = type)
+    message(paste(sam_file[x]," has been processed!",sep = ""))
+  }) -> tmp
+
+  return(NULL)
+}
+
+
+#' Load expression data from text files
+#'
+#' This function loads gene expression data from text files in a specified
+#' directory. It returns both count and TPM (transcripts per million) matrices
+#' for all samples.
+#'
+#' @param sample_name A character vector containing sample names. If NULL, the
+#' function will use the file names as sample names.
+#'
+#' @return A list containing two matrices:
+#' \describe{
+#'   \item{count_matrix}{A matrix of gene expression counts for all samples.}
+#'   \item{tpm_matrix}{A matrix of gene expression TPM values for all samples.}
+#' }
+#'
+#' @export
+load_expression_data <- function(sample_name = NULL){
+  # load data
+  file <- list.files('4.expression-data/','.txt')
+  message("Expression input files: ")
+  message(paste0(file,sep = "\n"))
+
+  if(is.null(sample_name)){
+    sample_name <- sapply(strsplit(file,split = '\\.'),'[',1)
+  }else{
+    sample_name <- sample_name
+  }
+
+  # ============================================================================
+  # extract count data
+  lapply(1:length(file),function(x){
+    tmp <- data.table::fread(paste('4.expression-data/',file[x],sep = ''))[,-3]
+    # add sample
+    sample <- sample_name[x]
+    colnames(tmp) <- c("gene_name",sample)
+
+    return(tmp)
+  }) -> count_list
+
+  # merge
+  all_count <- Reduce(function(x,y,...){merge(x,y,by = "gene_name",all = TRUE,...)},count_list)
+  all_count[is.na(all_count)] <- 0
+
+  # ============================================================================
+  # extract tpm data
+  lapply(1:length(file),function(x){
+    tmp <- data.table::fread(paste('4.expression-data/',file[x],sep = ''))[,-2]
+    # add sample
+    sample <- sample_name[x]
+    colnames(tmp) <- c("gene_name",sample)
+
+    return(tmp)
+  }) -> tpm_list
+
+  # merge
+  all_tpm <- Reduce(function(x,y,...){merge(x,y,by = "gene_name",all = TRUE,...)},tpm_list)
+  all_tpm[is.na(all_tpm)] <- 0
+
+  # return
+  return(list(count_matrix = all_count,
+              tpm_matrix = all_tpm))
 }

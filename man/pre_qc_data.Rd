@@ -4,9 +4,17 @@
 \alias{pre_qc_data}
 \title{pre_qc_data function}
 \usage{
-pre_qc_data(longest_trans_file = NULL, sam_file = NULL, out_file = NULL)
+pre_qc_data(
+  mapping_type = c("genome", "transcriptome"),
+  longest_trans_file = NULL,
+  sam_file = NULL,
+  out_file = NULL,
+  seq_type = c("pairedEnd", "singleEnd")
+)
 }
 \arguments{
+\item{mapping_type}{The mapping type for your sam files, "genome" or "transcriptome".}
+
 \item{longest_trans_file}{A string specifying the path to the longest transcript
 file.}
 
@@ -14,6 +22,8 @@ file.}
 
 \item{out_file}{A character vector specifying the paths to the output QC result
 files.}
+
+\item{seq_type}{The sequencing type for fastq files, "singleEnd" or "pairedEnd".}
 }
 \value{
 The function does not return a value, but outputs QC results in text

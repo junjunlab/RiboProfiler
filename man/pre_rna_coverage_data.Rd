@@ -4,10 +4,12 @@
 \alias{pre_rna_coverage_data}
 \title{Calculate RNA coverage data}
 \usage{
-pre_rna_coverage_data(sam_file = NULL, out_file = NULL)
+pre_rna_coverage_data(sam_file = NULL, bam_file = NULL, out_file = NULL)
 }
 \arguments{
 \item{sam_file}{A character vector specifying the path(s) of the input SAM file(s).}
+
+\item{bam_file}{If using sam file runs slowly, try using bam file instead.}
 
 \item{out_file}{A character vector specifying the name(s) of the output file(s).
 The output file(s) will be saved in the "2.density-data" directory.}

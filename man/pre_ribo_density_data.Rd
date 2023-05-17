@@ -4,9 +4,17 @@
 \alias{pre_ribo_density_data}
 \title{Calculate ribosome density data}
 \usage{
-pre_ribo_density_data(sam_file = NULL, out_file = NULL, min = 23, max = 35)
+pre_ribo_density_data(
+  mapping_type = c("genome", "transcriptome"),
+  sam_file = NULL,
+  out_file = NULL,
+  min = 23,
+  max = 35
+)
 }
 \arguments{
+\item{mapping_type}{The mapping type for your sam files, "genome" or "transcriptome".}
+
 \item{sam_file}{A character vector of SAM file paths.}
 
 \item{out_file}{A character vector of output file names.}

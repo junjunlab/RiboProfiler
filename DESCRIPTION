@@ -1,27 +1,46 @@
-Package: RiboAutumn
+Package: RiboProfiler
 Title: Ribo-seq Data Analysis and Visualization
-Version: 0.0.1
+Version: 0.0.5
 Author: Jun Zhang
 Maintainer: Jun Zhang <3219030654@stu.cpu.edu.cn>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Integrating Ribo-SEQ upstream and downstream analysis process from 
+  raw fastq data into ribosome density or count matrix data. Making Ribo-SEQ analysis
+  workflow more easier and concise for R users. Also supporting multiple kinds of
+  visualization with Ribo quality checking and density tracks.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
 Imports: 
+    Biostrings,
+    cli,
     data.table,
     dplyr,
+    GenomicAlignments,
     ggh4x,
     ggnewscale,
     ggplot2,
     grid,
+    gridExtra,
+    IRanges,
     JuliaCall,
     magrittr,
+    methods,
+    parallel,
     plyr,
+    R.utils,
+    rentrez,
+    reshape2,
     reticulate,
+    Rfastp,
+    Rhisat2,
     rlang,
+    Rsamtools,
+    rtracklayer,
+    scales,
+    utils,
+    vroom,
     zplyr
 Remotes:
   burchill/zplyr
-
+biocViews: Rfastp,Rhisat2,Biostrings,rtracklayer,GenomicAlignments,IRanges,Rsamtools

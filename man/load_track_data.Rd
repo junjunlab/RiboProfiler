@@ -5,6 +5,7 @@
 \title{Load gene expression data from ribo and rna files}
 \usage{
 load_track_data(
+  mapping_type = c("genome", "transcriptome"),
   ribo_file = NULL,
   rna_file = NULL,
   sample_name = NULL,
@@ -12,6 +13,8 @@ load_track_data(
 )
 }
 \arguments{
+\item{mapping_type}{The mapping type for your sam files, "genome" or "transcriptome".}
+
 \item{ribo_file}{A character vector specifying the names of ribo file(s).}
 
 \item{rna_file}{A character vector specifying the names of rna file(s).}

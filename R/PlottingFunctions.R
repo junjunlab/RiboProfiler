@@ -1,7 +1,23 @@
 globalVariables(c("counts", "dfqc", "feature", "framest", "group", "num",
                   "normaledReads",":=","density", "gene_name", "if_else",
                   "max_v", "min_v", "remove_chrom_panel_border", "rg_label",
-                  "trans_id", "transpos", "type", "ymax", "ymin",".","region"))
+                  "trans_id", "transpos", "type", "ymax", "ymin",".","region",
+                  "id","calculateRibosomeDensity","map_type", "reads","end",
+                  "gene_id", "seqnames", "start", "strand", "transcript_id"))
+
+#' theme setting
+#' Theme for plots
+#'
+#' @return theme list
+#' @export
+jj_theme <- function(){
+  theme(strip.background = element_rect(),
+        axis.text = element_text(color = "black",size = rel(1)),
+        axis.title = element_text(color = "black",size = rel(1.2),face = "bold"),
+        strip.text = element_text(color = "black",size = rel(1),face = "bold"),
+        strip.text.x = element_text(color = "black",size = rel(1),face = "bold.italic"),
+        panel.grid = element_blank())
+}
 
 #' qc_plot function
 #'
@@ -36,14 +52,6 @@ qc_plot <- function(qc_data = NULL,
   options(warn=-1)
   # Suppress summarise info
   options(dplyr.summarise.inform = FALSE)
-  # ===================================================================
-  # theme setting
-  jj_theme <-
-    theme(strip.background = element_rect(),
-          axis.text = element_text(color = "black",size = rel(1)),
-          axis.title = element_text(color = "black",size = rel(1.2)),
-          strip.text = element_text(color = "black",size = rel(1),face = "bold"),
-          panel.grid = element_blank())
 
   # ===================================================================
   # plot layers
@@ -52,7 +60,7 @@ qc_plot <- function(qc_data = NULL,
   pmain <-
     ggplot() +
     theme_bw() +
-    jj_theme +
+    jj_theme() +
     xlab('Read length') + ylab('Reads numbers(k)') +
     do.call(facet_wrap,
             modifyList(list(~sample,scales = 'free',ncol = 2),
@@ -68,7 +76,7 @@ qc_plot <- function(qc_data = NULL,
       do.call(geom_col,
               modifyList(list(data = len,
                               mapping = aes(x = length,y = num/1000),
-                              fill = "#8294C4",width = 0.75),
+                              fill = "#A4BE7B",width = 0.6),
                          geom_col_list))
   }else if(type == "length_frame"){
     frame <- qc_data %>% group_by(group,sample,length,framest) %>%
@@ -153,14 +161,6 @@ rel_to_start_stop <- function(qc_data = NULL,
   options(warn=-1)
   # Suppress summarise info
   options(dplyr.summarise.inform = FALSE)
-  # ===================================================================
-  # theme setting
-  jj_theme <-
-    theme(strip.background = element_rect(),
-          axis.text = element_text(color = "black",size = rel(1)),
-          axis.title = element_text(color = "black",size = rel(1.2)),
-          strip.text = element_text(color = "black",size = rel(1),face = "bold"),
-          panel.grid = element_blank())
 
   # ============================================================================
   # process arguments
@@ -209,7 +209,7 @@ rel_to_start_stop <- function(qc_data = NULL,
   pmain <-
     ggplot() +
     theme_bw() +
-    jj_theme +
+    jj_theme() +
     xlab('Read length') + ylab('Reads numbers(k)') +
     do.call(facet_wrap,
             modifyList(list(~sample,scales = 'free',ncol = 2),
@@ -218,7 +218,7 @@ rel_to_start_stop <- function(qc_data = NULL,
       list(data = df,
            mapping = aes(x = !!vars_f[[1]] + shift,y = normaledReads/1000,
                          fill = factor(!!vars_f[[2]])),
-           width = 1,
+           width = 0.8,
            position = position_dodge2()),
       geom_col_list)) +
     scale_fill_brewer(palette = 'OrRd',name = '',direction = -1,
@@ -257,6 +257,10 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @param structure_col Color of the gene structure rectangles.
 #' @param background_col Color of the plot background. Default is "grey90".
 #' @param range_pos Position of the range labels. Default is c(0.85,0.85).
+#' @param reverse_rna Whether reverse RNA track. Default is TRUE.
+#' @param rna_signal_scale The scale value of rna coverage track. Default is 1.
+#' It is used for better visualization when the difference of ribo density value
+#' and rna coverage value is quite huge.
 #' @param signal_col A named vector of colors for ribosome and RNA signals.
 #' Default is NULL, which means using a default color scheme.
 #' @param panel_size A numeric vector of length 2 specifying the width and height
@@ -285,7 +289,9 @@ track_plot <- function(signal_data = NULL,
                        gene_anno = NULL,
                        structure_col = NULL,
                        background_col = "white",
-                       range_pos = c(0.85,0.85),
+                       range_pos = c(0.8,0.85),
+                       reverse_rna = TRUE,
+                       rna_signal_scale = 1,
                        signal_col = NULL,
                        panel_size = NULL,
                        remove_all_panel_border = FALSE,
@@ -302,8 +308,17 @@ track_plot <- function(signal_data = NULL,
   if(show_ribo_only == TRUE){
     signal_data <- signal_data %>% dplyr::filter(type != "rna")
   }else{
-    signal_data <- signal_data %>%
-      dplyr::mutate(density = dplyr::if_else(type %in% "rna",-density,density))
+    if(reverse_rna == TRUE){
+      signal_data <- signal_data %>%
+        dplyr::mutate(density = dplyr::if_else(type %in% "rna",
+                                               -density*rna_signal_scale,
+                                               density))
+    }else{
+      signal_data <- signal_data %>%
+        dplyr::mutate(density = dplyr::if_else(type %in% "rna",
+                                               density*rna_signal_scale,
+                                               density))
+    }
 
     # order
     signal_data$type <- factor(signal_data$type,levels = c('rna','ribo'))
@@ -321,11 +336,33 @@ track_plot <- function(signal_data = NULL,
     }) -> signal_data
   }
 
+  # ============================================================================
+  # sample or gene orders
+  # ============================================================================
+  # gene_order = NULL
+  # sample_order = NULL
+
+  if(is.null(gene_order)){
+    signal_data$gene_name <- factor(signal_data$gene_name,
+                                    levels = unique(signal_data$gene_name))
+  }else{
+    signal_data$gene_name <- factor(signal_data$gene_name,
+                                    levels = gene_order)
+  }
+
+  if(is.null(sample_order)){
+    signal_data$sample <- factor(signal_data$sample,
+                                 levels = unique(signal_data$sample))
+  }else{
+    signal_data$sample <- factor(signal_data$sample,
+                                 levels = sample_order)
+  }
+
   # ==============================================================================
   # gene strctures
   # ==============================================================================
   # load geneinfo
-  geneInfo <- read.table('longest_info.txt')
+  geneInfo <- read.table(gene_anno)
   colnames(geneInfo) <- c('id','gene_name','gene_id','trans_id','chr','strand',
                           'cds_region','exon_region','utr5','cds','utr3')
   geneInfo <- geneInfo %>%
@@ -346,30 +383,47 @@ track_plot <- function(signal_data = NULL,
     return(df)
   })
 
+  # reassign orders
+  structure_df$sample <- factor(structure_df$sample ,levels = c(levels(signal_data$sample),"trans"))
+  structure_df$gene_name <- factor(structure_df$gene_name ,levels = levels(signal_data$gene_name))
+
   # ==============================================================================
   # panel range settings
   # ==============================================================================
   n_sample = length(unique(unique(signal_data$sample)))
+  n_gene = length(unique(unique(signal_data$gene_name)))
 
   # fixed_col_range = F
   if(fixed_col_range == TRUE){
     track_range <- signal_data %>%
       dplyr::group_by(gene_name) %>%
-      dplyr::summarise(min_v = min(density),
-                       max_v = max(density)) %>%
-      dplyr::mutate(rg_label = paste("[",signif(min_v,digits = 2),"-",
-                                     signif(max_v,digits = 2),"]",sep = "")) %>%
+      dplyr::summarise(min_v = round(min(density),digits = 2),
+                       max_v = round(max(density),digits = 2))
+
+    # reassign minimum value
+    if(show_ribo_only == TRUE | reverse_rna == FALSE){
+      track_range$min_v <- 0
+    }
+
+    track_range <- track_range %>%
+      dplyr::mutate(rg_label = paste("[",min_v,"-",max_v,"]",sep = "")) %>%
       replicate(n_sample,.,simplify = F) %>%
       do.call("rbind",.)
 
-    track_range$sample <- rep(unique(signal_data$sample),each = n_sample)
+    track_range$sample <- rep(unique(signal_data$sample),each = n_gene)
   }else{
     track_range <- signal_data %>%
       dplyr::group_by(gene_name,sample) %>%
-      dplyr::summarise(min_v = min(density),
-                       max_v = max(density)) %>%
-      dplyr::mutate(rg_label = paste("[",signif(min_v,digits = 2),"-",
-                                     signif(max_v,digits = 2),"]",sep = ""))
+      dplyr::summarise(min_v = round(min(density),digits = 2),
+                       max_v = round(max(density),digits = 2))
+
+    # reassign minimum value
+    if(show_ribo_only == TRUE | reverse_rna == FALSE){
+      track_range$min_v <- 0
+    }
+
+    track_range <- track_range %>%
+      dplyr::mutate(rg_label = paste("[",min_v,"-",max_v,"]",sep = ""))
   }
 
   # add group info
@@ -383,27 +437,25 @@ track_plot <- function(signal_data = NULL,
     }) -> track_range
   }
 
+  track_range$sample <- factor(track_range$sample ,levels = levels(signal_data$sample))
+  track_range$gene_name <- factor(track_range$gene_name ,levels = levels(signal_data$gene_name))
+
+  # orders
+  track_range <- track_range[order(track_range$sample,track_range$gene_name),]
+
   # y axis range layer
   range_layer <- lapply(1:(nrow(track_range) + length(unique(track_range$gene_name))), function(x){
     if(x <= nrow(track_range)){
       tmp <- track_range[x,]
       scale_y_continuous(limits = c(tmp$min_v,tmp$max_v))
     }else{
-      scale_y_continuous(limits = c(-2,1))
+      scale_y_continuous(limits = c(-3,1))
     }
   })
 
   # ==============================================================================
   # paras settings
   # ==============================================================================
-  # theme setting
-  jj_theme <-
-    theme(strip.background = element_rect(),
-          axis.text = element_text(color = "black",size = rel(1)),
-          axis.title = element_text(color = "black",size = rel(1.2),face = "bold"),
-          strip.text = element_text(color = "black",size = rel(1),face = "bold"),
-          strip.text.x = element_text(color = "black",size = rel(1),face = "bold.italic"),
-          panel.grid = element_blank())
 
   # color
   if(is.null(signal_col)){
@@ -434,27 +486,6 @@ track_plot <- function(signal_data = NULL,
   names(new_label) <- label_df$gene_name
 
   # ============================================================================
-  # sample or gene orders
-  # ============================================================================
-  # gene_order = NULL
-  # sample_order = NULL
-
-  if(is.null(gene_order)){
-    signal_data$gene_name <- factor(signal_data$gene_name,
-                                    levels = unique(signal_data$gene_name))
-  }else{
-    signal_data$gene_name <- factor(signal_data$gene_name,
-                                    levels = gene_order)
-  }
-
-  if(is.null(sample_order)){
-    signal_data$sample <- factor(signal_data$sample,
-                                 levels = unique(signal_data$sample))
-  }else{
-    signal_data$sample <- factor(signal_data$sample,
-                                 levels = sample_order)
-  }
-  # ============================================================================
   # plot
   # ============================================================================
   if(is.null(sample_group_info)){
@@ -478,7 +509,7 @@ track_plot <- function(signal_data = NULL,
                   fill = region),show.legend = FALSE) +
     scale_fill_manual(values = structure_col,name = "") +
     geom_text(data = structure_df,
-              mapping = aes(x = (start + end)/2,y = -1.5,label = region),
+              mapping = aes(x = (start + end)/2,y = -2,label = region),
               size = 3,fontface = "bold.italic") +
     zplyr::geom_abs_text(data = track_range,
                          aes(xpos = range_pos[1],ypos = range_pos[2],
@@ -492,7 +523,7 @@ track_plot <- function(signal_data = NULL,
                         switch = "y",
                         labeller = labeller(gene_name = new_label)) +
     ggh4x::facetted_pos_scales(y = range_layer) +
-    jj_theme +
+    jj_theme() +
     theme(strip.background = element_rect(fill = NA,color = NA),
           strip.text.y.left = element_text(angle = 0),
           axis.text = element_blank(),
@@ -535,4 +566,91 @@ track_plot <- function(signal_data = NULL,
     return(p)
   }
 
+}
+
+
+
+#' Plot mapping information from mapinfo files
+#'
+#' This function reads in mapinfo files and extracts mapping information for each file.
+#' The extracted information is then plotted either as a barplot or a table.
+#'
+#' @param mapinfo_file A character vector of file paths to the mapinfo files.
+#' @param file_name An optional character vector of names to assign to the samples.
+#' If NULL, the sample name will be extracted from the mapinfo file paths.
+#' @param plot_type A string indicating the type of plot to generate.
+#' Either "barplot" for a stacked barplot of mapping percentages, or "table" for
+#' a table of mapping counts.
+#' @param geom_col_params A list of parameters to pass to the \code{geom_col} function.
+#' Useful for modifying the appearance of the barplot.
+#'
+#' @return A barplot or table depending on the \code{plot_type} parameter.
+#'
+#' @examples
+#' \dontrun{
+#' # Generate a barplot of mapping percentages
+#' plot_mapinfo(mapinfo_file = c("sample1_mapinfo.txt", "sample2_mapinfo.txt"), plot_type = "barplot")
+#'
+#' # Generate a table of mapping counts
+#' plot_mapinfo(mapinfo_file = c("sample1_mapinfo.txt", "sample2_mapinfo.txt"), plot_type = "table")
+#' }
+#'
+#' @export
+plot_mapinfo <- function(mapinfo_file = NULL,file_name = NULL,
+                         plot_type = c("barplot","table"),geom_col_params = list()){
+  plot_type <- match.arg(plot_type,c("barplot","table"))
+
+  # define extract func
+  extrac_fun <- function(x){
+    as.numeric(sapply(strsplit(x,split = "\\("), "[",1))
+  }
+
+  # assign file name
+  if(is.null(file_name)){
+    sample_name <- sapply(strsplit(mapinfo_file,split = "mapinfo.txt"), "[",1)
+  }else{
+    sample_name <- file_name
+  }
+
+  # loop for read and extract
+  # x = 1
+  plyr::ldply(seq_along(mapinfo_file),function(x){
+    tmp <- read.delim(mapinfo_file[x],check.names = FALSE)
+
+    lapply(1:4, function(x){
+      extrac_fun(tmp[x,])
+    }) |> unlist() -> map_reads
+
+    res <- data.frame(sample = sample_name[x],
+                      total_mapped = map_reads[1],
+                      un_mapped = map_reads[2],
+                      uniq_mapped = map_reads[3],
+                      multi_mapped = map_reads[4])
+
+    return(res)
+  }) -> all_map_df
+
+  # wide to long
+  df_long <- reshape2::melt(all_map_df[,-2],id.vars = "sample",
+                            variable.name = "map_type",value.name = "reads")
+
+  # plot
+  barplot <-
+    ggplot(df_long) +
+    do.call(geom_col,modifyList(
+      list(mapping = aes(x = reads,y = sample,fill = map_type),
+           position = position_fill()),geom_col_params)) +
+    scale_fill_brewer(palette = "Paired") +
+    scale_x_continuous(labels = scales::label_percent()) +
+    theme_bw() + xlab("reads percent") +
+    jj_theme() + ylab("")
+
+  # return
+  if(plot_type == "barplot"){
+    barplot
+  }else{
+    tab <- gridExtra::tableGrob(all_map_df)
+    grid::grid.newpage()
+    grid::grid.draw(tab)
+  }
 }

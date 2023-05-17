@@ -9,7 +9,9 @@ track_plot(
   gene_anno = NULL,
   structure_col = NULL,
   background_col = "white",
-  range_pos = c(0.85, 0.85),
+  range_pos = c(0.8, 0.85),
+  reverse_rna = TRUE,
+  rna_signal_scale = 1,
   signal_col = NULL,
   panel_size = NULL,
   remove_all_panel_border = FALSE,
@@ -32,6 +34,12 @@ track_plot(
 \item{background_col}{Color of the plot background. Default is "grey90".}
 
 \item{range_pos}{Position of the range labels. Default is c(0.85,0.85).}
+
+\item{reverse_rna}{Whether reverse RNA track. Default is TRUE.}
+
+\item{rna_signal_scale}{The scale value of rna coverage track. Default is 1.
+It is used for better visualization when the difference of ribo density value
+and rna coverage value is quite huge.}
 
 \item{signal_col}{A named vector of colors for ribosome and RNA signals.
 Default is NULL, which means using a default color scheme.}
