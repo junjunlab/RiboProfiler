@@ -19,5 +19,5 @@ library(RiboProfiler)
 
 ## Citation
 
-> Jun Zhang (2023). *RiboProfiler: Extract Sequence from Genome According to Annotation File.*  https://github.com/junjunlab/RiboProfiler
+> Jun Zhang (2023). *RiboProfiler: Integrating Ribo-SEQ Upstream and Downstream Analysis.*  https://github.com/junjunlab/RiboProfiler
 
