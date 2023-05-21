@@ -616,7 +616,7 @@ count_to_tpm <- function(fc_obj = NULL){
 #' }
 #'
 #' @export
-call_cmd <- function(soft_path = NULL,call_func = NULL,...){
+call_cmd <- function(soft_path = NULL,...,call_func = NULL){
   if (is.null(call_func)) {
     call_func <- "system2"
   } else {

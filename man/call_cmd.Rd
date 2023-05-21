@@ -4,17 +4,17 @@
 \alias{call_cmd}
 \title{Call Command Function}
 \usage{
-call_cmd(soft_path = NULL, call_func = NULL, ...)
+call_cmd(soft_path = NULL, ..., call_func = NULL)
 }
 \arguments{
 \item{soft_path}{A character string that specifies the path to the software or
 program that will be executed.}
 
-\item{call_func}{A character string that specifies which function will be used
-to execute the command. Allowed values are "system2" or "system".}
-
 \item{...}{Additional arguments that will be passed to the command as a single
 character string.}
+
+\item{call_func}{A character string that specifies which function will be used
+to execute the command. Allowed values are "system2"(default) or "system".}
 }
 \value{
 The output of the function will depend on which function was used to
