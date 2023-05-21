@@ -7,12 +7,14 @@
 track_plot(
   signal_data = NULL,
   gene_anno = NULL,
+  plot_type = c("translatome", "interactome"),
   structure_col = NULL,
   background_col = "white",
   range_pos = c(0.8, 0.85),
   reverse_rna = TRUE,
   rna_signal_scale = 1,
   signal_col = NULL,
+  line_col = NULL,
   panel_size = NULL,
   remove_all_panel_border = FALSE,
   remove_trans_panel_border = FALSE,
@@ -20,7 +22,11 @@ track_plot(
   sample_order = NULL,
   fixed_col_range = TRUE,
   show_ribo_only = FALSE,
-  sample_group_info = NULL
+  sample_group_info = NULL,
+  geom_col_params = list(),
+  geom_line_params = list(),
+  geom_hline_params = list(),
+  geom_ribbon_params = list()
 )
 }
 \arguments{
@@ -28,6 +34,8 @@ track_plot(
 (either "ribo" or "rna"), "gene_name", "sample".}
 
 \item{gene_anno}{Longest transcript gene annotation file.}
+
+\item{plot_type}{the plot type for track, "translatome"(default) or "interactome".}
 
 \item{structure_col}{Color of the gene structure rectangles.}
 
@@ -42,6 +50,9 @@ It is used for better visualization when the difference of ribo density value
 and rna coverage value is quite huge.}
 
 \item{signal_col}{A named vector of colors for ribosome and RNA signals.
+Default is NULL, which means using a default color scheme.}
+
+\item{line_col}{A named vector of colors for enrichment line signals.
 Default is NULL, which means using a default color scheme.}
 
 \item{panel_size}{A numeric vector of length 2 specifying the width and height
@@ -67,6 +78,18 @@ for all panels. Default is TRUE.}
 
 \item{sample_group_info}{The groups for samples, giving a named list with
 samples, default NULL.}
+
+\item{geom_col_params}{The parameters passed by ggplot2::geom_col function for
+"translatome" plot type to overwrite params.}
+
+\item{geom_line_params}{The parameters passed by ggplot2::geom_line function for
+"interactome" plot type to overwrite params.}
+
+\item{geom_hline_params}{The parameters passed by ggplot2::geom_hline function for
+"interactome" plot type to overwrite params.}
+
+\item{geom_ribbon_params}{The parameters passed by ggplot2::geom_ribbon function for
+"interactome" plot type to overwrite params.}
 }
 \description{
 This function plots ribosome density and RNA coverage along the transcript,
