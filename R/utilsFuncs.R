@@ -597,7 +597,7 @@ count_to_tpm <- function(fc_obj = NULL){
 #' @param soft_path A character string that specifies the path to the software or
 #' program that will be executed.
 #' @param call_func A character string that specifies which function will be used
-#' to execute the command. Allowed values are "system2" or "system".
+#' to execute the command. Allowed values are "system2"(default) or "system".
 #' @param ... Additional arguments that will be passed to the command as a single
 #' character string.
 #'
