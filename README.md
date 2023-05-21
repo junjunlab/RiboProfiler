@@ -18,6 +18,10 @@ You can install the development version of RiboProfiler like so:
 ``` r
 # install.packages("devtools")
 devtools::install_github("junjunlab/RiboProfiler")
+
+# or
+remotes::install_github("junjunlab/RiboProfiler")
+
 library(RiboProfiler)
 ```
 
