@@ -254,6 +254,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @param signal_data A data frame with columns "transpos", "density", "type"
 #' (either "ribo" or "rna"), "gene_name", "sample".
 #' @param gene_anno Longest transcript gene annotation file.
+#' @param plot_type the plot type for track, "translatome"(default) or "interactome".
 #' @param structure_col Color of the gene structure rectangles.
 #' @param background_col Color of the plot background. Default is "grey90".
 #' @param range_pos Position of the range labels. Default is c(0.85,0.85).
@@ -262,6 +263,8 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' It is used for better visualization when the difference of ribo density value
 #' and rna coverage value is quite huge.
 #' @param signal_col A named vector of colors for ribosome and RNA signals.
+#' Default is NULL, which means using a default color scheme.
+#' @param line_col A named vector of colors for enrichment line signals.
 #' Default is NULL, which means using a default color scheme.
 #' @param panel_size A numeric vector of length 2 specifying the width and height
 #' of each panel. Default is NULL, which means using a default panel size.
@@ -279,6 +282,14 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @param show_ribo_only Wthether show only ribo density track. Default is FALSE.
 #' @param sample_group_info The groups for samples, giving a named list with
 #' samples, default NULL.
+#' @param geom_col_params The parameters passed by ggplot2::geom_col function for
+#' "translatome" plot type to overwrite params.
+#' @param geom_line_params The parameters passed by ggplot2::geom_line function for
+#' "interactome" plot type to overwrite params.
+#' @param geom_hline_params The parameters passed by ggplot2::geom_hline function for
+#' "interactome" plot type to overwrite params.
+#' @param geom_ribbon_params The parameters passed by ggplot2::geom_ribbon function for
+#' "interactome" plot type to overwrite params.
 #'
 #' @import zplyr
 #' @import ggh4x
@@ -287,12 +298,14 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @export
 track_plot <- function(signal_data = NULL,
                        gene_anno = NULL,
+                       plot_type = c("translatome","interactome"),
                        structure_col = NULL,
                        background_col = "white",
                        range_pos = c(0.8,0.85),
                        reverse_rna = TRUE,
                        rna_signal_scale = 1,
                        signal_col = NULL,
+                       line_col = NULL,
                        panel_size = NULL,
                        remove_all_panel_border = FALSE,
                        remove_trans_panel_border = FALSE,
@@ -300,7 +313,11 @@ track_plot <- function(signal_data = NULL,
                        sample_order = NULL,
                        fixed_col_range = TRUE,
                        show_ribo_only = FALSE,
-                       sample_group_info = NULL){
+                       sample_group_info = NULL,
+                       geom_col_params = list(),
+                       geom_line_params = list(),
+                       geom_hline_params = list(),
+                       geom_ribbon_params = list()){
   # ==============================================================================
   # process data
   # ==============================================================================
@@ -361,27 +378,49 @@ track_plot <- function(signal_data = NULL,
   # ==============================================================================
   # gene strctures
   # ==============================================================================
-  # load geneinfo
-  geneInfo <- read.table(gene_anno)
-  colnames(geneInfo) <- c('id','gene_name','gene_id','trans_id','chr','strand',
-                          'cds_region','exon_region','utr5','cds','utr3')
-  geneInfo <- geneInfo %>%
-    dplyr::filter(gene_name %in% unique(signal_data$gene_name))
+  plot_type <- match.arg(plot_type,c("translatome","interactome"))
 
-  # x = 1
-  structure_df <- plyr::ldply(1:nrow(geneInfo), function(x){
-    tmp <- geneInfo[x,]
-    df <- data.frame(gene_name = tmp$gene_name,
-                     start = c(0,tmp$utr5,tmp$utr5 + tmp$cds),
-                     end = c(tmp$utr5,tmp$utr5 + tmp$cds,tmp$utr5 + tmp$cds + tmp$utr3),
-                     ymin = c(-0.5,-1,-0.5),
-                     ymax = c(0.5,1,0.5),
-                     sample = "trans",
-                     region = c("5UTR","CDS","3UTR"),
-                     group = NA)
+  if(plot_type == "interactome"){
+    gene <- unique(signal_data$gene_name)
 
-    return(df)
-  })
+    # x = 1
+    structure_df <- plyr::ldply(seq_along(gene), function(x){
+      tmp <- signal_data[which(signal_data$gene_name %in% gene[x]),]
+
+      df <- data.frame(gene_name = gene[x],
+                       start = 1,
+                       end = length(unique(tmp$codon_pos)),
+                       ymin = -1,
+                       ymax = 1,
+                       sample = "trans",
+                       region = "CDS",
+                       group = NA)
+
+      return(df)
+    })
+  }else if(plot_type == "translatome"){
+    # load geneinfo
+    geneInfo <- read.table(gene_anno)
+    colnames(geneInfo) <- c('id','gene_name','gene_id','trans_id','chr','strand',
+                            'cds_region','exon_region','utr5','cds','utr3')
+    geneInfo <- geneInfo %>%
+      dplyr::filter(gene_name %in% unique(signal_data$gene_name))
+
+    # x = 1
+    structure_df <- plyr::ldply(1:nrow(geneInfo), function(x){
+      tmp <- geneInfo[x,]
+      df <- data.frame(gene_name = tmp$gene_name,
+                       start = c(0,tmp$utr5,tmp$utr5 + tmp$cds),
+                       end = c(tmp$utr5,tmp$utr5 + tmp$cds,tmp$utr5 + tmp$cds + tmp$utr3),
+                       ymin = c(-0.5,-1,-0.5),
+                       ymax = c(0.5,1,0.5),
+                       sample = "trans",
+                       region = c("5UTR","CDS","3UTR"),
+                       group = NA)
+
+      return(df)
+    })
+  }
 
   # reassign orders
   structure_df$sample <- factor(structure_df$sample ,levels = c(levels(signal_data$sample),"trans"))
@@ -396,12 +435,22 @@ track_plot <- function(signal_data = NULL,
   # fixed_col_range = F
   if(fixed_col_range == TRUE){
     track_range <- signal_data %>%
-      dplyr::group_by(gene_name) %>%
-      dplyr::summarise(min_v = round(min(density),digits = 2),
-                       max_v = round(max(density),digits = 2))
+      dplyr::group_by(gene_name)
+
+    # check plot_type
+    if(plot_type == "interactome"){
+      track_range <- track_range %>%
+        dplyr::summarise(min_v = round(min(density - density_sd),digits = 2),
+                         max_v = round(max(density + density_sd),digits = 2))
+    }else if(plot_type == "translatome"){
+      track_range <- track_range %>%
+        dplyr::summarise(min_v = round(min(density),digits = 2),
+                         max_v = round(max(density),digits = 2))
+    }
+
 
     # reassign minimum value
-    if(show_ribo_only == TRUE | reverse_rna == FALSE){
+    if(show_ribo_only == TRUE | reverse_rna == FALSE | plot_type == "interactome"){
       track_range$min_v <- 0
     }
 
@@ -413,12 +462,21 @@ track_plot <- function(signal_data = NULL,
     track_range$sample <- rep(unique(signal_data$sample),each = n_gene)
   }else{
     track_range <- signal_data %>%
-      dplyr::group_by(gene_name,sample) %>%
-      dplyr::summarise(min_v = round(min(density),digits = 2),
-                       max_v = round(max(density),digits = 2))
+      dplyr::group_by(gene_name,sample)
+
+    # check plot_type
+    if(plot_type == "interactome"){
+      track_range <- track_range %>%
+        dplyr::summarise(min_v = round(min(density - density_sd),digits = 2),
+                         max_v = round(max(density + density_sd),digits = 2))
+    }else if(plot_type == "translatome"){
+      track_range <- track_range %>%
+        dplyr::summarise(min_v = round(min(density),digits = 2),
+                         max_v = round(max(density),digits = 2))
+    }
 
     # reassign minimum value
-    if(show_ribo_only == TRUE | reverse_rna == FALSE){
+    if(show_ribo_only == TRUE | reverse_rna == FALSE | plot_type == "interactome"){
       track_range$min_v <- 0
     }
 
@@ -464,6 +522,16 @@ track_plot <- function(signal_data = NULL,
     signal_col <- signal_col
   }
 
+  # interactome line color
+  if(is.null(line_col)){
+    line_col_layer <- list(scale_color_brewer(palette = "Paired",name = ""),
+                           scale_fill_brewer(palette = "Paired",name = ""))
+
+  }else{
+    line_col_layer <- list(scale_color_manual(values = line_col,name = ""),
+                           scale_fill_manual(values = line_col,name = ""))
+  }
+
   # structure_col = NULL
   if(is.null(structure_col)){
     structure_col <- c("5UTR" = "grey70","CDS" = "grey50","3UTR" = "grey70")
@@ -479,7 +547,7 @@ track_plot <- function(signal_data = NULL,
   }
 
   # facet label
-  label_df <- signal_data %>%
+  label_df <- signal_data %>% dplyr::ungroup() %>%
     dplyr::select(gene_name,trans_id) %>% unique()
 
   new_label <- paste(label_df$gene_name,label_df$trans_id,sep = "\n")
@@ -494,15 +562,52 @@ track_plot <- function(signal_data = NULL,
     facet_var = group + sample~gene_name
   }
 
-  # draw
-  p <-
-    ggplot() +
-    geom_col(data = signal_data,
-             mapping = aes(x = transpos,y = density,
-                           fill = type),
-             width = 1) +
-    scale_fill_manual(values = signal_col,name = "") +
-    # geom_hline(yintercept = 0,lty = "solid",color = "black") +
+  # draw track
+  if(plot_type == "translatome"){
+    p <- ggplot() +
+      # geom_col(data = signal_data,
+      #          mapping = aes(x = transpos,y = density,
+      #                        fill = type),
+      #          width = 1) +
+      do.call(geom_col,modifyList(list(data = signal_data,
+                                       mapping = aes(x = transpos,y = density,
+                                                     fill = type),
+                                       width = 1),
+                                  geom_col_params)) +
+      scale_fill_manual(values = signal_col,name = "") +
+      xlab("Ribosome Along Transcript (nt)") +
+      ylab("Footprint Occupancy(upper)\n RNA Covergae(bottom)")
+  }else if(plot_type == "interactome"){
+    p <- ggplot() +
+      # geom_line(data = signal_data,
+      #           mapping = aes(x = codon_pos,y = density,color = gene_name)) +
+      do.call(geom_line,modifyList(list(data = signal_data,
+                                        mapping = aes(x = codon_pos,y = density,color = gene_name)),
+                                   geom_line_params)) +
+      # geom_hline(yintercept = 1.5,lty = 'dashed',color = 'red',size = 0.75) +
+      do.call(geom_hline,modifyList(list(yintercept = 1.5,lty = 'dashed',
+                                         color = 'red',size = 0.75),
+                                    geom_hline_params)) +
+      # geom_ribbon(data = signal_data,
+      #             mapping = aes(x = codon_pos,y = density,
+      #                           ymin = density - density_sd,
+      #                           ymax = density + density_sd,
+      #                           fill = gene_name),
+      #             alpha = 0.4) +
+      do.call(geom_ribbon,modifyList(list(data = signal_data,
+                                          mapping = aes(x = codon_pos,y = density,
+                                                        ymin = density - density_sd,
+                                                        ymax = density + density_sd,
+                                                        fill = gene_name),
+                                          alpha = 0.4),
+                                     geom_ribbon_params)) +
+      line_col_layer +
+      ylab('Mean enrichment [AU] (co-IP/total)') +
+      xlab('Ribosome position \n (codons/amino acids)')
+  }
+
+  # add theme details
+  ptheme <- p +
     ggnewscale::new_scale_fill() +
     geom_rect(data = structure_df,
               aes(xmin = start,xmax = end,ymin = ymin,ymax = ymax,
@@ -515,8 +620,6 @@ track_plot <- function(signal_data = NULL,
                          aes(xpos = range_pos[1],ypos = range_pos[2],
                              label = rg_label)) +
     theme_bw() +
-    xlab("Ribosome Along Transcript (nt)") +
-    ylab("Footprint Occupancy(upper)\n RNA Covergae(bottom)") +
     ggh4x::facet_nested(facet_var,
                         nest_line = element_line(linetype = "solid"),
                         scales = "free",independent = "y",
@@ -537,7 +640,7 @@ track_plot <- function(signal_data = NULL,
   # remove panel borders
   # ============================================================================
   if(remove_all_panel_border == TRUE | remove_trans_panel_border == TRUE){
-    g <- ggplotGrob(p)
+    g <- ggplotGrob(ptheme)
 
     # remove_all_panel_border = T
     col_num <- length(unique(signal_data$gene_name))
@@ -563,7 +666,7 @@ track_plot <- function(signal_data = NULL,
     grid::grid.newpage()
     grid::grid.draw(g)
   }else{
-    return(p)
+    return(ptheme)
   }
 
 }

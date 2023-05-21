@@ -586,3 +586,49 @@ count_to_tpm <- function(fc_obj = NULL){
 
   return(tpm_anno)
 }
+
+
+
+#' Call Command Function
+#'
+#' This function allows the user to execute a specific command using either the
+#' system or system2 function from the \code{base} package.
+#'
+#' @param soft_path A character string that specifies the path to the software or
+#' program that will be executed.
+#' @param call_func A character string that specifies which function will be used
+#' to execute the command. Allowed values are "system2" or "system".
+#' @param ... Additional arguments that will be passed to the command as a single
+#' character string.
+#'
+#' @return The output of the function will depend on which function was used to
+#' execute the command. If the system function was used, the returned value will
+#' be a character vector with the command's output. If the system2 function was
+#' used, the returned value will depend on the function's options.
+#'
+#' @examples
+#' \dontrun{
+#' # Call system2 function
+#' call_cmd(soft_path = "ls", call_func = "system2", args_cmd = "-la")
+#'
+#' # Call system function
+#' call_cmd(soft_path = "ls", call_func = "system", "-la")
+#' }
+#'
+#' @export
+call_cmd <- function(soft_path = NULL,call_func = NULL,...){
+  if (is.null(call_func)) {
+    call_func <- "system2"
+  } else {
+    call_func <- match.arg(call_func, c("system2", "system"))
+  }
+
+  # choose fun
+  if(call_func == "system2"){
+    args_cmd <- paste(...,sep = " ")
+    system2(command = soft_path,args = args_cmd)
+  }else if(call_func == "system"){
+    args_cmd <- paste(soft_path,...,sep = " ")
+    system(command = args_cmd,intern = TRUE)
+  }
+}

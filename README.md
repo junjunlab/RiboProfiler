@@ -1,25 +1,31 @@
-
-# RiboProfiler
+# RiboProfiler <img src="man/logo.png" align="right" height="200" />
 
 <!-- badges: start -->
+
+Integrating Ribo-SEQ upstream and downstream analysis process from raw fastq data into ribosome density or count matrix data. Making Ribo-SEQ analysis
+workflow more easier and concise for R users. Also supporting multiple kinds of visualization with Ribo quality checking and density tracks.
+
 <!-- badges: end -->
 
-The goal of RiboProfiler is to ...
+## Requierment
+
+> Please make sure you have installed **julia** and **python** first.
 
 ## Installation
 
 You can install the development version of RiboProfiler like so:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
-```
+# install.packages("devtools")
+devtools::install_github("junjunlab/RiboProfiler")
 
-## Example
+# or
+remotes::install_github("junjunlab/RiboProfiler")
 
-This is a basic example which shows you how to solve a common problem:
-
-``` r
 library(RiboProfiler)
-## basic example code
 ```
+
+## Citation
+
+> Jun Zhang (2023). *RiboProfiler: Integrating Ribo-SEQ Upstream and Downstream Analysis.*  https://github.com/junjunlab/RiboProfiler
 

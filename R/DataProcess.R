@@ -117,7 +117,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
   }
 
   JuliaCall::julia_setup(installJulia = TRUE)
-
+  JuliaCall::julia_install_package_if_needed("XAM")
   JuliaCall::julia_library("XAM")
 
   script_path <- paste0('include("',
@@ -492,7 +492,8 @@ load_track_data <- function(mapping_type = c("genome","transcriptome"),
       ribo_tmp <- vroom::vroom(paste('2.density-data/',ribo_file[x],sep = ''),
                                delim = "\t",show_col_types = FALSE,
                                col_names = c('id',"transpos",'none','density'),
-                               col_select = c('id','transpos','density'))
+                               col_select = c('id','transpos','density')) |>
+        data.table::as.data.table()
 
       # add colnames
       # colnames(ribo_tmp) <- c('id','transpos','density')
@@ -512,7 +513,8 @@ load_track_data <- function(mapping_type = c("genome","transcriptome"),
         rna_tmp <- vroom::vroom(paste('2.density-data/',rna_file[x],sep = ''),
                                 delim = "\t",show_col_types = FALSE,
                                 col_names = c('id',"transpos",'none','density'),
-                                col_select = c('id','transpos','density'))
+                                col_select = c('id','transpos','density')) |>
+          data.table::as.data.table()
 
         # add colnames
         # colnames(rna_tmp) <- c('id','transpos','density')
