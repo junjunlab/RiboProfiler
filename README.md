@@ -29,3 +29,7 @@ library(RiboProfiler)
 
 > Jun Zhang (2023). *RiboProfiler: Integrating Ribo-SEQ Upstream and Downstream Analysis.*  https://github.com/junjunlab/RiboProfiler
 
+## Documentation
+
+> ***[https://junjunlab.github.io/RiboProfiler-manual/](https://junjunlab.github.io/RiboProfiler-manual/)***
+
