@@ -8,6 +8,7 @@ track_plot(
   signal_data = NULL,
   gene_anno = NULL,
   plot_type = c("translatome", "interactome"),
+  add_gene_struc = TRUE,
   structure_col = NULL,
   background_col = "white",
   range_pos = c(0.8, 0.85),
@@ -22,6 +23,7 @@ track_plot(
   sample_order = NULL,
   fixed_col_range = TRUE,
   show_ribo_only = FALSE,
+  show_x_ticks = FALSE,
   show_y_ticks = FALSE,
   sample_group_info = NULL,
   geom_col_params = list(),
@@ -37,6 +39,8 @@ track_plot(
 \item{gene_anno}{Longest transcript gene annotation file.}
 
 \item{plot_type}{the plot type for track, "translatome"(default) or "interactome".}
+
+\item{add_gene_struc}{Whether add gene structure plot. Default is TRUE.}
 
 \item{structure_col}{Color of the gene structure rectangles.}
 
@@ -76,6 +80,8 @@ the input data.}
 for all panels. Default is TRUE.}
 
 \item{show_ribo_only}{Show only ribo density track. Default is FALSE.}
+
+\item{show_x_ticks}{show_x_ticks Whether show x aixs ticks. Default is FALSE.}
 
 \item{show_y_ticks}{Whether show y aixs ticks. Default is FALSE.}
 

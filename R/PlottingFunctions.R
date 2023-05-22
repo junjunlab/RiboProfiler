@@ -255,6 +255,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' (either "ribo" or "rna"), "gene_name", "sample".
 #' @param gene_anno Longest transcript gene annotation file.
 #' @param plot_type the plot type for track, "translatome"(default) or "interactome".
+#' @param add_gene_struc Whether add gene structure plot. Default is TRUE.
 #' @param structure_col Color of the gene structure rectangles.
 #' @param background_col Color of the plot background. Default is "grey90".
 #' @param range_pos Position of the range labels. Default is c(0.85,0.85).
@@ -280,6 +281,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @param fixed_col_range Logical indicating whether to use a fixed color range
 #' for all panels. Default is TRUE.
 #' @param show_ribo_only Show only ribo density track. Default is FALSE.
+#' @param show_x_ticks show_x_ticks Whether show x aixs ticks. Default is FALSE.
 #' @param show_y_ticks Whether show y aixs ticks. Default is FALSE.
 #' @param sample_group_info The groups for samples, giving a named list with
 #' samples, default NULL.
@@ -300,6 +302,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 track_plot <- function(signal_data = NULL,
                        gene_anno = NULL,
                        plot_type = c("translatome","interactome"),
+                       add_gene_struc = TRUE,
                        structure_col = NULL,
                        background_col = "white",
                        range_pos = c(0.8,0.85),
@@ -314,6 +317,7 @@ track_plot <- function(signal_data = NULL,
                        sample_order = NULL,
                        fixed_col_range = TRUE,
                        show_ribo_only = FALSE,
+                       show_x_ticks = FALSE,
                        show_y_ticks = FALSE,
                        sample_group_info = NULL,
                        geom_col_params = list(),
@@ -609,16 +613,23 @@ track_plot <- function(signal_data = NULL,
       xlab('Ribosome position \n (codons/amino acids)')
   }
 
+  # whether add gene structure
+  if(add_gene_struc == TRUE){
+    ptheme <- p +
+      ggnewscale::new_scale_fill() +
+      geom_rect(data = structure_df,
+                aes(xmin = start,xmax = end,ymin = ymin,ymax = ymax,
+                    fill = region),show.legend = FALSE) +
+      scale_fill_manual(values = structure_col,name = "") +
+      geom_text(data = structure_df,
+                mapping = aes(x = (start + end)/2,y = -2,label = region),
+                size = 3,fontface = "bold.italic")
+  }else{
+    ptheme <- p
+  }
+
   # add theme details
-  ptheme <- p +
-    ggnewscale::new_scale_fill() +
-    geom_rect(data = structure_df,
-              aes(xmin = start,xmax = end,ymin = ymin,ymax = ymax,
-                  fill = region),show.legend = FALSE) +
-    scale_fill_manual(values = structure_col,name = "") +
-    geom_text(data = structure_df,
-              mapping = aes(x = (start + end)/2,y = -2,label = region),
-              size = 3,fontface = "bold.italic") +
+  ptheme <- ptheme +
     theme_bw() +
     ggh4x::facet_nested(facet_var,
                         nest_line = element_line(linetype = "solid"),
@@ -635,8 +646,8 @@ track_plot <- function(signal_data = NULL,
     ptheme <- ptheme +
       theme(strip.background = element_rect(fill = NA,color = NA),
             strip.text.y.left = element_text(angle = 0),
-            axis.text.x = element_blank(),
-            axis.ticks.x = element_blank(),
+            # axis.text.x = element_text(),
+            # axis.ticks.x = element_line(),
             axis.text.y = element_text(),
             axis.ticks.y = element_line(),
             legend.text = element_text(face = "bold"),
@@ -648,12 +659,23 @@ track_plot <- function(signal_data = NULL,
                                label = rg_label)) +
       theme(strip.background = element_rect(fill = NA,color = NA),
             strip.text.y.left = element_text(angle = 0),
-            axis.text.x = element_blank(),
-            axis.ticks.x = element_blank(),
+            # axis.text.x = element_text(),
+            # axis.ticks.x = element_line(),
             axis.text.y = element_blank(),
             axis.ticks.y = element_blank(),
             legend.text = element_text(face = "bold"),
             panel.background = element_rect(fill = alpha(background_col,0.5)))
+  }
+
+  # whether show x ticks
+  if(show_x_ticks == TRUE){
+    ptheme <- ptheme +
+      theme(axis.text.x = element_text(),
+            axis.ticks.x = element_line())
+  }else{
+    ptheme <- ptheme +
+      theme(axis.text.x = element_blank(),
+            axis.ticks.x = element_blank())
   }
 
   # ============================================================================
