@@ -272,7 +272,7 @@ function MetageneAnalysis_ontrans(;inputFile,outputFile,mode="st",type="codon",c
             # tags
             gene_name,_,trans_id,cdsStart,cdsEnd,_ = split(fileds[1],"|")
             pos = parse(Int64,fileds[2])
-            cdsLength = parse(Int64,cdsEnd) - parse(Int64,cdsStart) + 1
+            cdsLength = parse(Int64,cdsEnd) - parse(Int64,cdsStart)
             density = parse(Float64,fileds[4])
 
             # filter CDS > 400 nt gene
@@ -324,7 +324,7 @@ function MetageneAnalysis_ontrans(;inputFile,outputFile,mode="st",type="codon",c
             # tags
             gene_name,_,trans_id,cdsStart,cdsEnd,_ = split(fileds[1],"|")
             pos = parse(Int64,fileds[2])
-            cdsLength = parse(Int64,cdsEnd) - parse(Int64,cdsStart) + 1
+            cdsLength = parse(Int64,cdsEnd) - parse(Int64,cdsStart)
             density = parse(Float64,fileds[4])
             id = join([trans_id,cdsLength - 90],":")
 
