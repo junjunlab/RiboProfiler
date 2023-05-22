@@ -279,7 +279,8 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' the input data.
 #' @param fixed_col_range Logical indicating whether to use a fixed color range
 #' for all panels. Default is TRUE.
-#' @param show_ribo_only Wthether show only ribo density track. Default is FALSE.
+#' @param show_ribo_only Show only ribo density track. Default is FALSE.
+#' @param show_y_ticks Whether show y aixs ticks. Default is FALSE.
 #' @param sample_group_info The groups for samples, giving a named list with
 #' samples, default NULL.
 #' @param geom_col_params The parameters passed by ggplot2::geom_col function for
@@ -313,6 +314,7 @@ track_plot <- function(signal_data = NULL,
                        sample_order = NULL,
                        fixed_col_range = TRUE,
                        show_ribo_only = FALSE,
+                       show_y_ticks = FALSE,
                        sample_group_info = NULL,
                        geom_col_params = list(),
                        geom_line_params = list(),
@@ -503,11 +505,12 @@ track_plot <- function(signal_data = NULL,
 
   # y axis range layer
   range_layer <- lapply(1:(nrow(track_range) + length(unique(track_range$gene_name))), function(x){
+    position <- ifelse(show_y_ticks == TRUE,"right","left")
     if(x <= nrow(track_range)){
       tmp <- track_range[x,]
-      scale_y_continuous(limits = c(tmp$min_v,tmp$max_v))
+      scale_y_continuous(limits = c(tmp$min_v,tmp$max_v),position = position)
     }else{
-      scale_y_continuous(limits = c(-3,1))
+      scale_y_continuous(limits = c(-3,1),breaks = NULL,position = position)
     }
   })
 
@@ -616,9 +619,6 @@ track_plot <- function(signal_data = NULL,
     geom_text(data = structure_df,
               mapping = aes(x = (start + end)/2,y = -2,label = region),
               size = 3,fontface = "bold.italic") +
-    zplyr::geom_abs_text(data = track_range,
-                         aes(xpos = range_pos[1],ypos = range_pos[2],
-                             label = rg_label)) +
     theme_bw() +
     ggh4x::facet_nested(facet_var,
                         nest_line = element_line(linetype = "solid"),
@@ -627,14 +627,34 @@ track_plot <- function(signal_data = NULL,
                         labeller = labeller(gene_name = new_label)) +
     ggh4x::facetted_pos_scales(y = range_layer) +
     jj_theme() +
-    theme(strip.background = element_rect(fill = NA,color = NA),
-          strip.text.y.left = element_text(angle = 0),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          legend.text = element_text(face = "bold"),
-          panel.background = element_rect(fill = alpha(background_col,0.5))) +
     ggh4x::force_panelsizes(rows = rep(c(rep(panel_size[1],n_sample),panel_size[2]),
                                        length(unique(signal_data$gene_name))))
+
+  # whether show y ticks
+  if(show_y_ticks == TRUE){
+    ptheme <- ptheme +
+      theme(strip.background = element_rect(fill = NA,color = NA),
+            strip.text.y.left = element_text(angle = 0),
+            axis.text.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.text.y = element_text(),
+            axis.ticks.y = element_line(),
+            legend.text = element_text(face = "bold"),
+            panel.background = element_rect(fill = alpha(background_col,0.5)))
+  }else{
+    ptheme <- ptheme +
+      zplyr::geom_abs_text(data = track_range,
+                           aes(xpos = range_pos[1],ypos = range_pos[2],
+                               label = rg_label)) +
+      theme(strip.background = element_rect(fill = NA,color = NA),
+            strip.text.y.left = element_text(angle = 0),
+            axis.text.x = element_blank(),
+            axis.ticks.x = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.text = element_text(face = "bold"),
+            panel.background = element_rect(fill = alpha(background_col,0.5)))
+  }
 
   # ============================================================================
   # remove panel borders

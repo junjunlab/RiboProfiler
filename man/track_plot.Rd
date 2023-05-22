@@ -22,6 +22,7 @@ track_plot(
   sample_order = NULL,
   fixed_col_range = TRUE,
   show_ribo_only = FALSE,
+  show_y_ticks = FALSE,
   sample_group_info = NULL,
   geom_col_params = list(),
   geom_line_params = list(),
@@ -74,7 +75,9 @@ the input data.}
 \item{fixed_col_range}{Logical indicating whether to use a fixed color range
 for all panels. Default is TRUE.}
 
-\item{show_ribo_only}{Wthether show only ribo density track. Default is FALSE.}
+\item{show_ribo_only}{Show only ribo density track. Default is FALSE.}
+
+\item{show_y_ticks}{Whether show y aixs ticks. Default is FALSE.}
 
 \item{sample_group_info}{The groups for samples, giving a named list with
 samples, default NULL.}
