@@ -381,7 +381,7 @@ batch_hisat_align <- function(index = NULL,
   lapply(seq_along(fq_file1), function(x){
     # check whether supply paired reads
     if(is.null(fq_file2)){
-      if(endsWith(fq_file1[x],".gz|.gzip")){
+      if(endsWith(fq_file1[x],".gz") || endsWith(fq_file1[x],".gzip")){
         R.utils::gunzip(fq_file1[x],remove = FALSE)
         sequences <- sapply(strsplit(fq_file1[x],split = ".gz|.gzip"),"[",1)
       }else{
@@ -390,14 +390,14 @@ batch_hisat_align <- function(index = NULL,
     }else{
       # ================================================
       # paired end
-      if(endsWith(fq_file1[x],".gz|.gzip")){
+      if(endsWith(fq_file1[x],".gz") || endsWith(fq_file1[x],".gzip")){
         R.utils::gunzip(fq_file1[x],remove = FALSE)
         sequences_1 <- sapply(strsplit(fq_file1[x],split = ".gz|.gzip"),"[",1)
       }else{
         sequences_1 <- fq_file1[x]
       }
 
-      if(endsWith(fq_file2[x],".gz|.gzip")){
+      if(endsWith(fq_file2[x],".gz") || endsWith(fq_file2[x],".gzip")){
         R.utils::gunzip(fq_file2[x],remove = FALSE)
         sequences_2 <- sapply(strsplit(fq_file2[x],split = ".gz|.gzip"),"[",1)
       }else{
