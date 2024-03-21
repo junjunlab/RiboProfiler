@@ -73,7 +73,7 @@ function prepareQCdata(;longestTransInfo,samFile,outFile,seqType)
                 refname,align_pos,read_length = SAM.refname(record),SAM.position(record),SAM.seqlength(record)
 
                 # read flag tag
-                flag = SAM.flag(record)
+                flag = SAM.flags(record)
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
@@ -197,7 +197,7 @@ function prepareQCdata_ontrans(;samFile,outFile,seqType)
             refname = SAM.refname(record)
             align_pos = SAM.position(record)
             read_length = SAM.seqlength(record)
-            flag = SAM.flag(record)
+            flag = SAM.flags(record)
 
             # flag0(-strand gene) and flag16(+strand gene) for read1
             if seqType == "singleEnd"
