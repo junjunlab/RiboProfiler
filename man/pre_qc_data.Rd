@@ -6,6 +6,7 @@
 \usage{
 pre_qc_data(
   mapping_type = c("genome", "transcriptome"),
+  julia_path = NULL,
   longest_trans_file = NULL,
   sam_file = NULL,
   out_file = NULL,
@@ -14,6 +15,8 @@ pre_qc_data(
 }
 \arguments{
 \item{mapping_type}{The mapping type for your sam files, "genome" or "transcriptome".}
+
+\item{julia_path}{The julia program path on the computer.}
 
 \item{longest_trans_file}{A string specifying the path to the longest transcript
 file.}

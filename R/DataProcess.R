@@ -84,6 +84,7 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #' output is a QC result in a text file format.
 #'
 #' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
+#' @param julia_path The julia program path on the computer.
 #' @param longest_trans_file A string specifying the path to the longest transcript
 #' file.
 #' @param sam_file A character vector specifying the paths to the SAM files.
@@ -105,6 +106,7 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #'
 #' @export
 pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
+                        julia_path = NULL,
                         longest_trans_file = NULL,
                         sam_file = NULL,
                         out_file = NULL,
@@ -114,6 +116,11 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
 
   if(!dir.exists("1.QC-data")){
     dir.create("1.QC-data")
+  }
+
+  # check julia
+  if(!is.null(julia_path)){
+    options(JULIA_HOME = julia_path)
   }
 
   JuliaCall::julia_setup(installJulia = TRUE)
