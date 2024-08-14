@@ -552,12 +552,13 @@ load_track_data <- function(mapping_type = c("genome","transcriptome"),
 #' annotation.
 #'
 #' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
-#' @param gene_anno A data.frame containing gene annotation information.
+#' @param gene_anno A data.frame containing gene annotation information which is
+#' needed when mapping_type = "genome".
 #' @param density_file A character vector of file names for ribosome density data.
 #' @param out_file A character vector of output file names for metagene data.
 #' @param mode A character indicating the mode of analysis, "st" or "sp".
 #' Default is "st".
-#' @param type A character indicating the type of analysis. Default is "codon".
+#' @param type A character indicating the type of analysis, "nt" or "codon". Default is "codon".
 #' @param cdslength An integer indicating the length of CDS. Default is 600.
 #' @param expression An integer indicating the minimum expression value. Default is 30.
 #' @param exclude An integer indicating the number of nucleotides to exclude from
