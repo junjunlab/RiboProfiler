@@ -19,7 +19,8 @@ pre_metagene_data(
 \arguments{
 \item{mapping_type}{The mapping type for your sam files, "genome" or "transcriptome".}
 
-\item{gene_anno}{A data.frame containing gene annotation information.}
+\item{gene_anno}{A data.frame containing gene annotation information which is
+needed when mapping_type = "genome".}
 
 \item{density_file}{A character vector of file names for ribosome density data.}
 
@@ -28,7 +29,7 @@ pre_metagene_data(
 \item{mode}{A character indicating the mode of analysis, "st" or "sp".
 Default is "st".}
 
-\item{type}{A character indicating the type of analysis. Default is "codon".}
+\item{type}{A character indicating the type of analysis, "nt" or "codon". Default is "codon".}
 
 \item{cdslength}{An integer indicating the length of CDS. Default is 600.}
 
