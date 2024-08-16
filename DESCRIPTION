@@ -46,6 +46,6 @@ Imports:
     vroom,
     zplyr
 Remotes:
-  burchill/zplyr
+  burchill/zplyr,
   jtlandis/ggside
 biocViews: Rfastp,Rhisat2,Biostrings,rtracklayer,GenomicAlignments,IRanges,Rsamtools,Rsubread
