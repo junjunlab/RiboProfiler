@@ -90,7 +90,7 @@ footprint_heatmap <- function(qc_data = NULL,
   # check xlayer
   if(xline == TRUE){
     xlayer <- ggside::geom_xsideline(data = ht_x_df,
-                                     aes(x = .data[[type]],y = count,col = xline_col))
+                                     aes(x = .data[[type]],y = count),color = xline_col)
   }else{
     xlayer <- ggside::geom_xsidecol(data = ht_x_df,
                                     aes(x = .data[[type]],y = count),fill = bar_col,
