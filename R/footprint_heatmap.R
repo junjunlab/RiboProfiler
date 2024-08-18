@@ -23,7 +23,9 @@
 #' @param xline Whether show x side plot with line plot. Default is FASLE.
 #' @param xline_col The color of x side line when xline = TRUE. Default is "black".
 #'   Default is 0.75.
+#' @param log Whether do log transformation for counts. Default is FALSE.
 #' @param xseq The x axis interval. Default is 3.
+#'
 #' @return A ggplot2 object representing the footprint heatmap.
 #' @importFrom dplyr filter group_by summarise
 #' @import ggplot2
@@ -40,7 +42,8 @@ footprint_heatmap <- function(qc_data = NULL,
                               scale_y = 0.1,
                               xseq = 3,
                               xline = FALSE,
-                              xline_col = "black"){
+                              xline_col = "black",
+                              log = FALSE){
   # ==========================================================================
   # check args
   # ==========================================================================
@@ -76,6 +79,10 @@ footprint_heatmap <- function(qc_data = NULL,
     dplyr::filter(.data[[type]] >= rel_pos[1] & .data[[type]] <= rel_pos[2]) |>
     dplyr::group_by(sample,length,.data[[type]]) |>
     dplyr::summarise(count = sum(counts))
+
+  if(log == TRUE){
+    ht$count <- log2(ht$count + 1)
+  }
 
 
   ht_x_df <- ht |>

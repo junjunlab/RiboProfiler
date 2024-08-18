@@ -16,7 +16,8 @@ footprint_heatmap(
   scale_y = 0.1,
   xseq = 3,
   xline = FALSE,
-  xline_col = "black"
+  xline_col = "black",
+  log = FALSE
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ Default is "grey".}
 
 \item{xline_col}{The color of x side line when xline = TRUE. Default is "black".
 Default is 0.75.}
+
+\item{log}{Whether do log transformation for counts. Default is FALSE.}
 }
 \value{
 A ggplot2 object representing the footprint heatmap.
