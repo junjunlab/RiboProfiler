@@ -45,7 +45,7 @@ PsiteOffsetCheck <- function(qc_data = NULL,
 
   # summarise offsets
   summary_offset <-
-    plyr::ddply(df_maxht[,c("sample","length","relst")], .(sample), mutate,readLengths = paste(length, collapse = ", "),
+    plyr::ddply(df_maxht[,c("sample","length","relst")], plyr::.(sample), mutate,readLengths = paste(length, collapse = ", "),
                 Offsets = paste(relst, collapse = ", ")) |>
     dplyr::select(-length,-relst)|> unique() |>
     dplyr::mutate(bamFiles = sample,bamLegends = sample)
