@@ -23,6 +23,7 @@
 #' @param xline Whether show x side plot with line plot. Default is FASLE.
 #' @param xline_col The color of x side line when xline = TRUE. Default is "black".
 #'   Default is 0.75.
+#' @param xseq The x axis interval. Default is 3.
 #' @return A ggplot2 object representing the footprint heatmap.
 #' @importFrom dplyr filter group_by summarise
 #' @import ggplot2
@@ -37,6 +38,7 @@ footprint_heatmap <- function(qc_data = NULL,
                               bar_width = 0.75,
                               scale_x = 0.1,
                               scale_y = 0.1,
+                              xseq = 3,
                               xline = FALSE,
                               xline_col = "black"){
   # ==========================================================================
@@ -113,8 +115,8 @@ footprint_heatmap <- function(qc_data = NULL,
     scale_fill_viridis_c(option = "mako",direction = -1) +
     scale_y_continuous(breaks = seq(read_length[1],read_length[2],2),
                        labels = seq(read_length[1],read_length[2],2)) +
-    scale_x_continuous(breaks = seq(rel_pos[1],rel_pos[2],3),
-                       labels = seq(rel_pos[1],rel_pos[2],3)) +
+    scale_x_continuous(breaks = seq(rel_pos[1],rel_pos[2],xseq),
+                       labels = seq(rel_pos[1],rel_pos[2],xseq)) +
     coord_cartesian(expand = 0) +
     theme(axis.text = element_text(colour = "black"),
           panel.grid = element_blank(),

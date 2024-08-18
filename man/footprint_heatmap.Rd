@@ -14,6 +14,7 @@ footprint_heatmap(
   bar_width = 0.75,
   scale_x = 0.1,
   scale_y = 0.1,
+  xseq = 3,
   xline = FALSE,
   xline_col = "black"
 )
@@ -41,6 +42,8 @@ Default is "grey".}
 \item{scale_x}{X panel size. Default is 0.1.}
 
 \item{scale_y}{Y panel size. Default is 0.1.}
+
+\item{xseq}{The x axis interval. Default is 3.}
 
 \item{xline}{Whether show x side plot with line plot. Default is FASLE.}
 
