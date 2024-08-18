@@ -294,7 +294,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @param geom_ribbon_params The parameters passed by ggplot2::geom_ribbon function for
 #' "interactome" plot type to overwrite params.
 #'
-#' @import zplyr
+#' @importFrom zplyr geom_abs_text
 #' @import ggh4x
 #' @importFrom grid grid.ls grid.draw grid.newpage
 #'

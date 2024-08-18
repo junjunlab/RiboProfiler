@@ -12,8 +12,8 @@ function CalculateRibosomeDensity(;inputFile,outputFile,min = 23,max = 35)
     total_reads = 0
 
     # open sam file
-    reader = open(SAM.Reader,inputFile)
-    record = SAM.Record()
+    reader = open(BAM.Reader,inputFile)
+    record = BAM.Record()
 
     # loop
     while !eof(reader)
@@ -21,12 +21,12 @@ function CalculateRibosomeDensity(;inputFile,outputFile,min = 23,max = 35)
         read!(reader, record)
     # for record in reader
         # do something
-        if SAM.ismapped(record)
+        if BAM.ismapped(record)
             total_reads += 1
             # tags
-            refname = SAM.refname(record)
-            align_pos = SAM.position(record)
-            read_length = SAM.seqlength(record)
+            refname = BAM.refname(record)
+            align_pos = BAM.position(record)
+            read_length = BAM.seqlength(record)
 
             # filter read length
             if min <= read_length <= max
@@ -82,8 +82,8 @@ function CalculateRibosomeDensity_ontrans(;inputFile,outputFile,min = 23,max = 3
     total_reads = 0
 
     # open sam file
-    reader = open(SAM.Reader,inputFile)
-    record = SAM.Record()
+    reader = open(BAM.Reader,inputFile)
+    record = BAM.Record()
 
     # loop
     while !eof(reader)
@@ -91,12 +91,12 @@ function CalculateRibosomeDensity_ontrans(;inputFile,outputFile,min = 23,max = 3
         read!(reader, record)
     # for record in reader
         # do something
-        if SAM.ismapped(record)
+        if BAM.ismapped(record)
             total_reads += 1
             # tags
-            refname = SAM.refname(record)
-            align_pos = SAM.position(record)
-            read_length = SAM.seqlength(record)
+            refname = BAM.refname(record)
+            align_pos = BAM.position(record)
+            read_length = BAM.seqlength(record)
 
             # filter read length
             if min < read_length < max

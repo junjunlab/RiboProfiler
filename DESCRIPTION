@@ -20,6 +20,7 @@ Imports:
     ggh4x,
     ggnewscale,
     ggplot2,
+    ggpp,
     ggside,
     grid,
     gridExtra,

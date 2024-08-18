@@ -59,8 +59,8 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
         frame_dict = Dict{String,Int64}()
 
         # open sam file
-        reader = open(SAM.Reader,inputFile)
-        record = SAM.Record()
+        reader = open(BAM.Reader,inputFile)
+        record = BAM.Record()
 
         # loop
         while !eof(reader)
@@ -68,12 +68,12 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
             read!(reader, record)
         # for record in reader
             # do something
-            if SAM.ismapped(record) # (remove flag4)
+            if BAM.ismapped(record) # (remove flag4)
                 # tags
-                refname,align_pos,read_length = SAM.refname(record),SAM.position(record),SAM.seqlength(record)
+                refname,align_pos,read_length = BAM.refname(record),BAM.position(record),BAM.seqlength(record)
 
                 # read flag tag
-                flag = SAM.flags(record)
+                flag = BAM.flags(record)
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
@@ -183,8 +183,8 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
     frame_dict = Dict{String,Int64}()
 
     # open sam file
-    reader = open(SAM.Reader,inFile)
-    record = SAM.Record()
+    reader = open(BAM.Reader,inFile)
+    record = BAM.Record()
 
     # loop
     while !eof(reader)
@@ -192,12 +192,12 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
         read!(reader, record)
     # for record in reader
         # do something
-        if SAM.ismapped(record)
+        if BAM.ismapped(record)
             # tags
-            refname = SAM.refname(record)
-            align_pos = SAM.position(record)
-            read_length = SAM.seqlength(record)
-            flag = SAM.flags(record)
+            refname = BAM.refname(record)
+            align_pos = BAM.position(record)
+            read_length = BAM.seqlength(record)
+            flag = BAM.flags(record)
 
             # flag0(-strand gene) and flag16(+strand gene) for read1
             if seqType == "singleEnd"

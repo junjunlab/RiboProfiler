@@ -11,7 +11,11 @@ footprint_heatmap(
   read_length = c(20, 35),
   tile_border = "grey",
   bar_col = "grey",
-  bar_width = 0.75
+  bar_width = 0.75,
+  scale_x = 0.1,
+  scale_y = 0.1,
+  xline = FALSE,
+  xline_col = "black"
 )
 }
 \arguments{
@@ -32,7 +36,15 @@ border. Default is "grey".}
 \item{bar_col}{A character string specifying the color of the bar.
 Default is "grey".}
 
-\item{bar_width}{A numeric value specifying the width of the bar.
+\item{bar_width}{A numeric value specifying the width of the bar.}
+
+\item{scale_x}{X panel size. Default is 0.1.}
+
+\item{scale_y}{Y panel size. Default is 0.1.}
+
+\item{xline}{Whether show x side plot with line plot. Default is FASLE.}
+
+\item{xline_col}{The color of x side line when xline = TRUE. Default is "black".
 Default is 0.75.}
 }
 \value{

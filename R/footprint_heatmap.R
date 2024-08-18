@@ -18,6 +18,10 @@
 #' @param bar_col A character string specifying the color of the bar.
 #'   Default is "grey".
 #' @param bar_width A numeric value specifying the width of the bar.
+#' @param scale_x X panel size. Default is 0.1.
+#' @param scale_y Y panel size. Default is 0.1.
+#' @param xline Whether show x side plot with line plot. Default is FASLE.
+#' @param xline_col The color of x side line when xline = TRUE. Default is "black".
 #'   Default is 0.75.
 #' @return A ggplot2 object representing the footprint heatmap.
 #' @importFrom dplyr filter group_by summarise
@@ -30,7 +34,11 @@ footprint_heatmap <- function(qc_data = NULL,
                               read_length = c(20,35),
                               tile_border = "grey",
                               bar_col = "grey",
-                              bar_width = 0.75){
+                              bar_width = 0.75,
+                              scale_x = 0.1,
+                              scale_y = 0.1,
+                              xline = FALSE,
+                              xline_col = "black"){
   # ==========================================================================
   # check args
   # ==========================================================================
@@ -79,13 +87,21 @@ footprint_heatmap <- function(qc_data = NULL,
   # ==========================================================================
   # plot
   # ==========================================================================
+  # check xlayer
+  if(xline == TRUE){
+    xlayer <- ggside::geom_xsideline(data = ht_x_df,
+                                     aes(x = .data[[type]],y = count,col = xline_col))
+  }else{
+    xlayer <- ggside::geom_xsidecol(data = ht_x_df,
+                                    aes(x = .data[[type]],y = count),fill = bar_col,
+                                    width = bar_width)
+  }
 
+  # plot
   ggplot(ht) +
     geom_tile(aes(x = .data[[type]],y = length,fill = count),color = tile_border) +
     # x barplot
-    ggside::geom_xsidecol(data = ht_x_df,
-                          aes(x = .data[[type]],y = count),fill = bar_col,
-                          width = bar_width) +
+    xlayer +
     ggside::scale_xsidey_continuous(breaks = NULL) +
     # y barplot
     ggside::geom_ysidecol(data = ht_y_df,
@@ -104,8 +120,11 @@ footprint_heatmap <- function(qc_data = NULL,
           panel.grid = element_blank(),
           strip.text = element_text(face = "bold.italic",size = rel(1)),
           ggside.panel.background = element_blank(),
-          ggside.panel.border = element_blank()) +
+          ggside.panel.border = element_blank(),
+          ggside.panel.scale.x = scale_x,
+          ggside.panel.scale.y = scale_y) +
     xlab(xlab) +
     ylab("Read length (nt)") +
     facet_wrap(~sample,scales = "free")
+
 }

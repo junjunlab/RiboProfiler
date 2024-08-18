@@ -1,3 +1,5 @@
+Sys.setlocale("LC_CTYPE", "zh_CN.UTF-8")
+
 #' Fetch tRNA and rRNA sequences from NCBI database
 #'
 #' This function allows users to fetch tRNA and rRNA sequences for a given

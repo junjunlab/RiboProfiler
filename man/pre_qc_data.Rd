@@ -9,6 +9,7 @@ pre_qc_data(
   julia_path = NULL,
   longest_trans_file = NULL,
   sam_file = NULL,
+  bam_file = NULL,
   out_file = NULL,
   seq_type = c("pairedEnd", "singleEnd")
 )
@@ -22,6 +23,8 @@ pre_qc_data(
 file.}
 
 \item{sam_file}{A character vector specifying the paths to the SAM files.}
+
+\item{bam_file}{A character vector specifying the paths to the BAM files.}
 
 \item{out_file}{A character vector specifying the paths to the output QC result
 files.}

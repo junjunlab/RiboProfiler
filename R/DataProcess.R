@@ -88,6 +88,7 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #' @param longest_trans_file A string specifying the path to the longest transcript
 #' file.
 #' @param sam_file A character vector specifying the paths to the SAM files.
+#' @param bam_file A character vector specifying the paths to the BAM files.
 #' @param out_file A character vector specifying the paths to the output QC result
 #' files.
 #' @param seq_type The sequencing type for fastq files, "singleEnd" or "pairedEnd".
@@ -109,6 +110,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
                         julia_path = NULL,
                         longest_trans_file = NULL,
                         sam_file = NULL,
+                        bam_file = NULL,
                         out_file = NULL,
                         seq_type = c("pairedEnd","singleEnd")){
   mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
@@ -127,32 +129,56 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
   JuliaCall::julia_install_package_if_needed("XAM")
   JuliaCall::julia_library("XAM")
 
-  script_path <- paste0('include("',
-                        system.file("extdata", "prepareQCdata.jl",
-                                    package = "RiboProfiler"),
-                        '")',collapse = "")
+  # check input file type
+  if(!is.null(sam_file) & is.null(bam_fie)){
+    script_path <- paste0('include("',
+                          system.file("extdata", "prepareQCdata.jl",
+                                      package = "RiboProfiler"),
+                          '")',collapse = "")
+  }else{
+    script_path <- paste0('include("',
+                          system.file("extdata", "prepareQCdataForBam.jl",
+                                      package = "RiboProfiler"),
+                          '")',collapse = "")
+  }
+
 
   # choose function
   JuliaCall::julia_eval(script_path)
+
   if(mapping_type == "genome"){
     prepareQCdata <- JuliaCall::julia_eval("prepareQCdata")
+
+    # inputfile
+    if(!is.null(sam_file) & is.null(bam_fie)){
+      inFile = paste0(sam_file,collapse = ",")
+    }else{
+      inFile = paste0(bam_file,collapse = ",")
+    }
 
     # excute function
     outFile_tmp = paste("1.QC-data/",out_file,sep = "")
     prepareQCdata(longestTransInfo = longest_trans_file,
-                  samFile = paste0(sam_file,collapse = ","),
+                  inFile = inFile,
                   outFile = paste0(outFile_tmp,collapse = ","),
                   seqType = seq_type)
   }else if(mapping_type == "transcriptome"){
     prepareQCdata <- JuliaCall::julia_eval("prepareQCdata_ontrans")
 
-    lapply(1:length(sam_file), function(x){
+    # inputfile
+    if(!is.null(sam_file) & is.null(bam_fie)){
+      inFile = sam_file
+    }else{
+      inFile = bam_file
+    }
+
+    lapply(1:length(inFile), function(x){
       # excute function
       outFile_tmp = paste("1.QC-data/",out_file[x],sep = "")
-      prepareQCdata(samFile = sam_file[x],
+      prepareQCdata(inFile = inFile[x],
                     outFile = outFile_tmp,
                     seqType = seq_type)
-      message(paste(sam_file[x]," has been processed!",sep = ""))
+      message(paste(inFile[x]," has been processed!",sep = ""))
     }) -> tmp
   }
 
@@ -166,6 +192,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
 #'
 #' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
 #' @param sam_file A character vector of SAM file paths.
+#' @param bam_file A character vector of BAM file paths.
 #' @param out_file A character vector of output file names.
 #' @param min The minimum length of reads to be considered for calculating density
 #' (default is 23).
@@ -189,6 +216,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
 #' @export
 pre_ribo_density_data <- function(mapping_type = c("genome","transcriptome"),
                                   sam_file = NULL,
+                                  bam_file = NULL,
                                   out_file = NULL,
                                   min = 23,max = 35){
   mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
@@ -201,13 +229,23 @@ pre_ribo_density_data <- function(mapping_type = c("genome","transcriptome"),
 
   JuliaCall::julia_library("XAM")
 
-  script_path <- paste0('include("',
-                        system.file("extdata", "CalculateRibosomeDensity.jl",
-                                    package = "RiboProfiler"),
-                        '")',collapse = "")
+  # check input file type
+  if(!is.null(sam_file) & is.null(bam_fie)){
+    script_path <- paste0('include("',
+                          system.file("extdata", "CalculateRibosomeDensity.jl",
+                                      package = "RiboProfiler"),
+                          '")',collapse = "")
+  }else{
+    script_path <- paste0('include("',
+                          system.file("extdata", "CalculateRibosomeDensityForBam.jl",
+                                      package = "RiboProfiler"),
+                          '")',collapse = "")
+  }
+
 
   # choose function
   JuliaCall::julia_eval(script_path)
+
   if(mapping_type == "genome"){
     calculateRibosomeDensity <- JuliaCall::julia_eval("CalculateRibosomeDensity")
   }else if(mapping_type == "transcriptome"){
@@ -215,13 +253,20 @@ pre_ribo_density_data <- function(mapping_type = c("genome","transcriptome"),
   }
 
   # excute function
-  lapply(seq_along(sam_file), function(x){
+  if(!is.null(sam_file) & is.null(bam_fie)){
+    inputFile <- sam_file
+  }else{
+    inputFile <- bam_file
+  }
+
+  # loop analysis
+  lapply(seq_along(inputFile), function(x){
     outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
-    calculateRibosomeDensity(inputFile = sam_file[x],
+    calculateRibosomeDensity(inputFile = inputFile[x],
                              outputFile = outFile_tmp,
                              min = min,
                              max = max)
-    message(paste(sam_file[x]," has been processed!",sep = ""))
+    message(paste(inputFile[x]," has been processed!",sep = ""))
   }) -> tmp
 
   return(NULL)
@@ -352,8 +397,6 @@ pre_gene_trans_density <- function(gene_anno = NULL,
 
   JuliaCall::julia_setup(installJulia = TRUE)
 
-  JuliaCall::julia_library("XAM")
-
   script_path <- paste0('include("',
                         system.file("extdata", "GetGeneSinglePosDensity.jl",
                                     package = "RiboProfiler"),
@@ -365,6 +408,7 @@ pre_gene_trans_density <- function(gene_anno = NULL,
   lapply(seq_along(density_file), function(x){
     inputFile_tmp = paste("2.density-data/",density_file[x],sep = "")
     outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
+
     getGeneSinglePosDensity(geneInfo = gene_anno,
                             inputFile = inputFile_tmp,
                             outputFile = outFile_tmp)
