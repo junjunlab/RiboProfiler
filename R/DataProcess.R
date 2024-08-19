@@ -130,7 +130,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
   JuliaCall::julia_library("XAM")
 
   # check input file type
-  if(!is.null(sam_file) & is.null(bam_fie)){
+  if(!is.null(sam_file) & is.null(bam_file)){
     script_path <- paste0('include("',
                           system.file("extdata", "prepareQCdata.jl",
                                       package = "RiboProfiler"),
@@ -150,7 +150,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
     prepareQCdata <- JuliaCall::julia_eval("prepareQCdata")
 
     # inputfile
-    if(!is.null(sam_file) & is.null(bam_fie)){
+    if(!is.null(sam_file) & is.null(bam_file)){
       inFile = paste0(sam_file,collapse = ",")
     }else{
       inFile = paste0(bam_file,collapse = ",")
@@ -166,7 +166,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
     prepareQCdata <- JuliaCall::julia_eval("prepareQCdata_ontrans")
 
     # inputfile
-    if(!is.null(sam_file) & is.null(bam_fie)){
+    if(!is.null(sam_file) & is.null(bam_file)){
       inFile = sam_file
     }else{
       inFile = bam_file
@@ -230,7 +230,7 @@ pre_ribo_density_data <- function(mapping_type = c("genome","transcriptome"),
   JuliaCall::julia_library("XAM")
 
   # check input file type
-  if(!is.null(sam_file) & is.null(bam_fie)){
+  if(!is.null(sam_file) & is.null(bam_file)){
     script_path <- paste0('include("',
                           system.file("extdata", "CalculateRibosomeDensity.jl",
                                       package = "RiboProfiler"),
@@ -253,7 +253,7 @@ pre_ribo_density_data <- function(mapping_type = c("genome","transcriptome"),
   }
 
   # excute function
-  if(!is.null(sam_file) & is.null(bam_fie)){
+  if(!is.null(sam_file) & is.null(bam_file)){
     inputFile <- sam_file
   }else{
     inputFile <- bam_file
