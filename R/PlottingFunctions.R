@@ -295,7 +295,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' "interactome" plot type to overwrite params.
 #'
 #' @importFrom zplyr geom_abs_text
-#' @import ggh4x
+#' @importFrom ggh4x facet_nested facetted_pos_scales force_panelsizes
 #' @importFrom grid grid.ls grid.draw grid.newpage
 #'
 #' @export
