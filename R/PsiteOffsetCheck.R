@@ -27,9 +27,10 @@ PsiteOffsetCheck <- function(qc_data = NULL,
   # ===================================================================================
   # process data
   # ===================================================================================
-  qc_df <- qc_data
+  # qc_df <- qc_data
+  qc_data$length <- as.numeric(as.character(qc_data$length))
 
-  df_ft <- qc_df |>
+  df_ft <- qc_data |>
     dplyr::filter(relst >= relative_distance[1] & relst <= relative_distance[2]) |>
     dplyr::filter(length >= read_length[1] & length <= read_length[2]) |>
     dplyr::group_by(sample,length,relst) |>
