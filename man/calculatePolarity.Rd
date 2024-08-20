@@ -7,7 +7,7 @@
 calculatePolarity(
   gene_anno_file = NULL,
   gtf_file = NULL,
-  sam_file = NULL,
+  input_file = NULL,
   density_file = NULL,
   minCounts = 64,
   upstreamNt = 15,
@@ -22,7 +22,7 @@ file. Default is NULL.}
 \item{gtf_file}{A character string specifying the path to the GTF file. Default is
 NULL.}
 
-\item{sam_file}{A character vector specifying the paths to the SAM files. Default is
+\item{input_file}{A character vector specifying the paths to the SAM/BAM files. Default is
 NULL.}
 
 \item{density_file}{A character vector specifying the paths to the density files.

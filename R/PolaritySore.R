@@ -13,7 +13,7 @@ globalVariables(c("abs_pos", "cds", "count", "pos", "sum_density" ,
 #'   file. Default is NULL.
 #' @param gtf_file A character string specifying the path to the GTF file. Default is
 #'   NULL.
-#' @param sam_file A character vector specifying the paths to the SAM files. Default is
+#' @param input_file A character vector specifying the paths to the SAM/BAM files. Default is
 #'   NULL.
 #' @param density_file A character vector specifying the paths to the density files.
 #'   Default is NULL.
@@ -33,7 +33,7 @@ globalVariables(c("abs_pos", "cds", "count", "pos", "sum_density" ,
 #' @export
 calculatePolarity <- function(gene_anno_file = NULL,
                               gtf_file = NULL,
-                              sam_file = NULL,
+                              input_file = NULL,
                               density_file = NULL,
                               minCounts = 64,
                               upstreamNt = 15,
@@ -53,7 +53,7 @@ calculatePolarity <- function(gene_anno_file = NULL,
   # define internal function
   # ========================================================================================
   calc_PS_fun <- function(gtf_file = NULL,
-                          sam_file = NULL,
+                          input_file = NULL,
                           density_file = NULL,
                           minCounts = 64,
                           upstreamNt = 15,
@@ -62,7 +62,7 @@ calculatePolarity <- function(gene_anno_file = NULL,
     # ========================================================================================
     # calculate counts for each gene
     # ========================================================================================
-    exp <- Rsubread::featureCounts(files = sam_file,
+    exp <- Rsubread::featureCounts(files = input_file,
                                    annot.ext = gtf_file,
                                    isGTFAnnotationFile = T,
                                    GTF.featureType = "CDS",
@@ -116,9 +116,9 @@ calculatePolarity <- function(gene_anno_file = NULL,
   # loop to calclate polarity scores for each samples
   # ========================================================================================
   # x = 1
-  purrr::map_df(seq_along(sam_file),function(x){
+  purrr::map_df(seq_along(input_file),function(x){
     calc_PS_fun(gtf_file = gtf_file,
-                sam_file = sam_file[x],
+                input_file = input_file[x],
                 density_file = density_file[x],
                 minCounts = minCounts,
                 upstreamNt = upstreamNt,
