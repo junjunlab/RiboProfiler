@@ -36,7 +36,6 @@ Imports:
     reshape2,
     reticulate,
     Rfastp,
-    Rhisat2,
     rlang,
     Rsamtools,
     Rsubread,
@@ -50,3 +49,5 @@ Remotes:
   burchill/zplyr,
   jtlandis/ggside
 biocViews: Rfastp,Rhisat2,Biostrings,rtracklayer,GenomicAlignments,IRanges,Rsamtools,Rsubread
+Suggests: 
+    Rhisat2
