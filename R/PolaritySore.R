@@ -109,7 +109,7 @@ calculatePolarity <- function(gene_anno_file = NULL,
                     pi = density*wi/sum_density) |>
       dplyr::group_by(gene_name) |>
       dplyr::summarise(sum_pi = sum(pi)) |>
-      dplyr::mutate(group = group,sample = sam_file)
+      dplyr::mutate(group = group,sample = input_file)
   }
 
   # ========================================================================================
