@@ -125,6 +125,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
     options(JULIA_HOME = julia_path)
   }
 
+  options(timeout = max(1000, getOption("timeout")))
   JuliaCall::julia_setup(installJulia = TRUE)
   JuliaCall::julia_install_package_if_needed("XAM")
   JuliaCall::julia_library("XAM")
