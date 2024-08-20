@@ -640,6 +640,7 @@ pre_metagene_data <- function(mapping_type = c("genome","transcriptome"),
 
   JuliaCall::julia_setup(installJulia = TRUE)
 
+  JuliaCall::julia_install_package_if_needed("DataStructures")
   JuliaCall::julia_library("DataStructures")
 
   script_path <- paste0('include("',
