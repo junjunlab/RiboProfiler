@@ -99,7 +99,7 @@ calculatePolarity <- function(gene_anno_file = NULL,
 
     # calculate wi and pi for each gene
     if(is.null(group)){
-      group <- sam_file
+      group <- input_file
     }
 
     ps_df <- dt |>

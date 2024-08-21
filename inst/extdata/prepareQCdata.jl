@@ -57,6 +57,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
         
         # save in dict
         frame_dict = Dict{String,Int64}()
+        total_mapped_counts = 0
 
         # open sam file
         reader = open(SAM.Reader,inputFile)
@@ -74,6 +75,10 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
 
                 # read flag tag
                 flag = SAM.flags(record)
+
+                if flag == 16 || flag == 0
+                    total_mapped_counts += 1
+                end
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
@@ -156,7 +161,9 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
         # output file
         outfile = open(outputFile,"w")
         for (key,val) in frame_dict
-            write(outfile,"$key\t$val\n")
+            # write(outfile,"$key\t$val\n")
+            normalized_counts = (val/total_mapped_counts)*1000000
+            write(outfile,"$key\t$normalized_counts\n")
         end
         close(outfile)
     end
@@ -181,6 +188,7 @@ end
 function prepareQCdata_ontrans(;inFile,outFile,seqType)
     # save in dict
     frame_dict = Dict{String,Int64}()
+    total_mapped_counts = 0
 
     # open sam file
     reader = open(SAM.Reader,inFile)
@@ -198,6 +206,10 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
             align_pos = SAM.position(record)
             read_length = SAM.seqlength(record)
             flag = SAM.flags(record)
+
+            if flag == 16 || flag == 0
+                total_mapped_counts += 1
+            end
 
             # flag0(-strand gene) and flag16(+strand gene) for read1
             if seqType == "singleEnd"
@@ -265,7 +277,9 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
     # output file
     outfile = open(outFile,"w")
     for (key,val) in frame_dict
-        write(outfile,"$key\t$val\n")
+        # write(outfile,"$key\t$val\n")
+        normalized_counts = (val/total_mapped_counts)*1000000
+        write(outfile,"$key\t$normalized_counts\n")
     end
     close(outfile)
 end

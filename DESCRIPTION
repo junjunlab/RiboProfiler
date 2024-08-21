@@ -35,13 +35,11 @@ Imports:
     rentrez,
     reshape2,
     reticulate,
-    Rfastp,
     rlang,
-    Rsamtools,
-    Rsubread,
     rtracklayer,
     scales,
     stringr,
+    Rsubread,
     utils,
     vroom,
     zplyr
@@ -50,4 +48,4 @@ Remotes:
   jtlandis/ggside
 biocViews: Rfastp,Rhisat2,Biostrings,rtracklayer,GenomicAlignments,IRanges,Rsamtools,Rsubread
 Suggests: 
-    Rhisat2
+    Rhisat2,Rfastp,Rsamtools
