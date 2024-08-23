@@ -82,9 +82,11 @@ gene_anno_extend <- function(longest_trans_file = NULL,
     tmp <- split_rg[[x]]
 
     if(length(tmp) == 2){
-      exon_rg_new <- paste(gstart_new,gstop_new,sep = ":")
+      exon_rg_new <- paste(as.integer(gstart_new),as.integer(gstop_new),sep = ":")
     }else{
-      exon_rg_new <- base::paste(gstart_new,base::paste0(tmp[2:(length(tmp) - 1)],collapse = ":"),gstop_new,sep = ":")
+      exon_rg_new <- base::paste(as.integer(gstart_new),
+                                 base::paste0(tmp[2:(length(tmp) - 1)],collapse = ":"),
+                                 as.integer(gstop_new),sep = ":")
     }
 
     # output

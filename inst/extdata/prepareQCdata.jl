@@ -9,13 +9,13 @@ using XAM
 # 1.load gene fearures positions and transform into trans position
 ###################################################################
 function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
-    geneinfoDict = Dict{String, Vector{Int}}()
+    geneinfoDict = Dict{String, Array}()
 
     open(longestTransInfo, "r") do geneinfo
         for line in eachline(geneinfo)
             
             # split tags
-            _, gene_name, _, _, chr, strand, cdsRg, exon, utr5, cds, utr3 = split(line)
+            _, gene_name, _, transid, chr, strand, cdsRg, exon, utr5, cds, utr3 = split(line)
             # exon length
             utr5, cds, utr3 = parse(Int64, utr5), parse(Int64, cds), parse(Int64, utr3)
             exonLength = utr5 + cds + utr3
@@ -41,7 +41,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
             posKeys = ["$chr|$pos" for pos in exonPositions]
 
             for i in range(1,length(posKeys))
-                geneinfoDict[posKeys[i]] = [cdsStart, cdsEnd,counts[i]]
+                geneinfoDict[posKeys[i]] = [cdsStart, cdsEnd,counts[i],transid]
             end
         end
     end
@@ -72,6 +72,16 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
             if SAM.ismapped(record) # (remove flag4)
                 # tags
                 refname,align_pos,read_length = SAM.refname(record),SAM.position(record),SAM.seqlength(record)
+
+                # check 5'end mismatch
+                match_details = record["MD"]
+                end5_match = occursin(r"^0", match_details)
+
+                if end5_match == true
+                    match_info = "5'end_mismatch"
+                else 
+                    match_info = "total_match"
+                end
 
                 # read flag tag
                 flag = SAM.flags(record)
@@ -113,7 +123,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
                 if haskey(geneinfoDict,readKey)
 
                     # get gene info
-                    start_codon_pos,stop_codon_pos,transPos = geneinfoDict[readKey]
+                    start_codon_pos,stop_codon_pos,transPos,transid = geneinfoDict[readKey]
                     
                     # relative distance
                     rel2st = transPos - start_codon_pos
@@ -142,7 +152,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
                     end
 
                     # key
-                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype],"\t")
+                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos,transid,match_info],"\t")
 
                     # init dict and count
                     if !haskey(frame_dict,key)
@@ -211,6 +221,16 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
                 total_mapped_counts += 1
             end
 
+            # check 5'end mismatch
+            match_details = record["MD"]
+            end5_match = occursin(r"^0", match_details)
+
+            if end5_match == true
+                match_info = "5'end_mismatch"
+            else 
+                match_info = "total_match"
+            end
+
             # flag0(-strand gene) and flag16(+strand gene) for read1
             if seqType == "singleEnd"
                 if flag == 0
@@ -234,6 +254,7 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
             # start and stop codon position
             start_codon_pos = parse(Int,split(refname,"|")[4])
             stop_codon_pos = parse(Int,split(refname,"|")[5])
+            transid = parse(Int,split(refname,"|")[3])
 
             # relative distance
             rel2st = exact_pos - start_codon_pos
@@ -262,7 +283,7 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
             end
 
             # key
-            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype],"\t")
+            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,align_pos,transid,match_info],"\t")
             
             # init dict and count
             if !haskey(frame_dict,key)

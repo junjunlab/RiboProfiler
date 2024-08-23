@@ -453,8 +453,11 @@ load_qc_data <- function(sample_name = NULL,
   }
 
   plyr::ldply(1:length(file),function(x){
-    tmp <- data.table::fread(paste('1.QC-data/',file[x],sep = ''))
-    colnames(tmp) <- c('length','framest','relst','framesp','relsp','feature','counts')
+    # tmp <- data.table::fread(paste('1.QC-data/',file[x],sep = ''))
+    tmp <- vroom::vroom(file = paste('1.QC-data/',file[x],sep = ''),col_names = F,show_col_types = FALSE)
+
+    colnames(tmp) <- c('length','framest','relst','framesp','relsp',
+                       'feature','trans_pos','trans_id','match_info','counts')
     # add sample
     tmp$sample <- sample_name[x]
     # add group
