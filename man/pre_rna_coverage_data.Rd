@@ -15,7 +15,7 @@ pre_rna_coverage_data(sam_file = NULL, bam_file = NULL, out_file = NULL)
 The output file(s) will be saved in the "2.density-data" directory.}
 }
 \description{
-This function generates pre-processing RNA coverage data for a given SAM file.
+This function generates pre-processing RNA coverage data for a given SAM/BAM file.
 }
 \examples{
 \dontrun{

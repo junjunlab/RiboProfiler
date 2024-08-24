@@ -77,10 +77,24 @@ whole_metagene_plot <- function(gene_file = NULL,
       dplyr::mutate(rel_pos_new = dplyr::case_when(rel_pos >=0 & rel_pos < 1 ~ scales::rescale(rel_pos,to = c(1 - utr5_scale,1),from = c(0,1)),
                                                    rel_pos >=2 ~ scales::rescale(rel_pos,to = c(2,2 + utr3_scale),from = c(2,3)),
                                                    .default = rel_pos)) %>%
-      dplyr::select(sample,group,rel_pos,rel_pos_new)
+      dplyr::select(sample,group,counts,rel_pos,rel_pos_new)
 
     return(tmp_anno)
   }) -> relpos_df
+
+  # add conuts to frequency
+  df_tmp <- relpos_df[,c("sample","counts","rel_pos","rel_pos_new")]
+
+  sp <- unique(df_tmp$sample)
+
+  # x = 1
+  purrr::map_df(seq_along(sp),function(x){
+    tmp <- subset(df_tmp,sample == sp[x])
+    new_tmp <- data.frame(sample = sp[x],
+                          rel_pos = rep(tmp$rel_pos,tmp$counts),
+                          rel_pos_new = rep(tmp$rel_pos_new,tmp$counts))
+    return(new_tmp)
+  }) -> df_plot
 
   # ===================================================================================================
   # plot
@@ -88,13 +102,13 @@ whole_metagene_plot <- function(gene_file = NULL,
   if(scale_region == TRUE){
     breaks <- c((1 - utr5_scale + 1)/2,1.5,(2 + utr3_scale/2))
 
-    line <- do.call(geom_density,modifyList(list(data = relpos_df,
+    line <- do.call(geom_density,modifyList(list(data = df_plot,
                                                  mapping = aes(x = rel_pos_new)),
                                             geom_line_list))
   }else{
     breaks <- c(0.5,1.5,2.5)
 
-    line <- do.call(geom_density,modifyList(list(data = relpos_df,
+    line <- do.call(geom_density,modifyList(list(data = df_plot,
                                                  mapping = aes(x = rel_pos)),
                                             geom_line_list))
   }

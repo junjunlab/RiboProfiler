@@ -74,14 +74,14 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
                 refname,align_pos,read_length = BAM.refname(record),BAM.position(record),BAM.seqlength(record)
 
                 # check 5'end mismatch
-                match_details = record["MD"]
-                end5_match = occursin(r"^0", match_details)
+                # match_details = record["MD"]
+                # end5_match = occursin(r"^0", match_details)
 
-                if end5_match == true
-                    match_info = "5'end_mismatch"
-                else 
-                    match_info = "total_match"
-                end
+                # if end5_match == true
+                #     match_info = "5'end_mismatch"
+                # else 
+                #     match_info = "total_match"
+                # end
 
                 # read flag tag
                 flag = BAM.flags(record)
@@ -151,7 +151,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
                     end
 
                     # key
-                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos,transid,match_info],"\t")
+                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos,transid],"\t")
 
                     # init dict and count
                     if !haskey(frame_dict,key)
@@ -172,7 +172,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
         for (key,val) in frame_dict
             # write(outfile,"$key\t$val\n")
             normalized_counts = (val/total_mapped_counts)*1000000
-            write(outfile,"$key\t$normalized_counts\n")
+            write(outfile,"$key\t$normalized_counts\t$val\n")
         end
         close(outfile)
     end
@@ -221,14 +221,14 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
             end
 
             # check 5'end mismatch
-            match_details = record["MD"]
-            end5_match = occursin(r"^0", match_details)
+            # match_details = record["MD"]
+            # end5_match = occursin(r"^0", match_details)
 
-            if end5_match == true
-                match_info = "5'end_mismatch"
-            else 
-                match_info = "total_match"
-            end
+            # if end5_match == true
+            #     match_info = "5'end_mismatch"
+            # else 
+            #     match_info = "total_match"
+            # end
 
             # flag0(-strand gene) and flag16(+strand gene) for read1
             if seqType == "singleEnd"
@@ -282,7 +282,7 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
             end
 
             # key
-            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,align_pos,transid,match_info],"\t")
+            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,align_pos,transid],"\t")
             
             # init dict and count
             if !haskey(frame_dict,key)
@@ -299,7 +299,7 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
     for (key,val) in frame_dict
         # write(outfile,"$key\t$val\n")
         normalized_counts = (val/total_mapped_counts)*1000000
-        write(outfile,"$key\t$normalized_counts\n")
+        write(outfile,"$key\t$normalized_counts\t$val\n")
     end
     close(outfile)
 end

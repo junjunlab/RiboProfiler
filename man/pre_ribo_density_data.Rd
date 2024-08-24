@@ -14,7 +14,7 @@ pre_ribo_density_data(
 )
 }
 \arguments{
-\item{mapping_type}{The mapping type for your sam files, "genome" or "transcriptome".}
+\item{mapping_type}{The mapping type for your sam/bam files, "genome" or "transcriptome".}
 
 \item{sam_file}{A character vector of SAM file paths.}
 

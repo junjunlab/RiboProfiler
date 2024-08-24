@@ -80,7 +80,7 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #' pre_qc_data function
 #'
 #' This function performs quality control (QC) analysis on ribosome profiling
-#' data. The input is a SAM file generated from ribosome profiling data and the
+#' data. The input is a SAM/BAM file generated from ribosome profiling data and the
 #' output is a QC result in a text file format.
 #'
 #' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
@@ -191,7 +191,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
 #'
 #' This function calculates the ribosome density data using XAM package in Julia.
 #'
-#' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
+#' @param mapping_type The mapping type for your sam/bam files, "genome" or "transcriptome".
 #' @param sam_file A character vector of SAM file paths.
 #' @param bam_file A character vector of BAM file paths.
 #' @param out_file A character vector of output file names.
@@ -276,7 +276,7 @@ pre_ribo_density_data <- function(mapping_type = c("genome","transcriptome"),
 
 #' Calculate RNA coverage data
 #'
-#' This function generates pre-processing RNA coverage data for a given SAM file.
+#' This function generates pre-processing RNA coverage data for a given SAM/BAM file.
 #'
 #' @param sam_file A character vector specifying the path(s) of the input SAM file(s).
 #' @param bam_file If using sam file runs slowly, try using bam file instead.
@@ -457,7 +457,7 @@ load_qc_data <- function(sample_name = NULL,
     tmp <- vroom::vroom(file = paste('1.QC-data/',file[x],sep = ''),col_names = F,show_col_types = FALSE)
 
     colnames(tmp) <- c('length','framest','relst','framesp','relsp',
-                       'feature','trans_pos','trans_id','match_info','counts')
+                       'feature','trans_pos','trans_id','norm_counts','counts')
     # add sample
     tmp$sample <- sample_name[x]
     # add group

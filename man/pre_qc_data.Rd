@@ -37,7 +37,7 @@ files.
 }
 \description{
 This function performs quality control (QC) analysis on ribosome profiling
-data. The input is a SAM file generated from ribosome profiling data and the
+data. The input is a SAM/BAM file generated from ribosome profiling data and the
 output is a QC result in a text file format.
 }
 \examples{
