@@ -42,7 +42,8 @@ Imports:
     Rsubread,
     utils,
     vroom,
-    zplyr
+    zplyr,
+    tidyr
 Remotes:
   burchill/zplyr,
   jtlandis/ggside

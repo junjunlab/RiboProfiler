@@ -172,8 +172,8 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
         outfile = open(outputFile,"w")
         for (key,val) in frame_dict
             # write(outfile,"$key\t$val\n")
-            normalized_counts = (val/total_mapped_counts)*1000000
-            write(outfile,"$key\t$normalized_counts\t$val\n")
+            # normalized_counts = (val/total_mapped_counts)*1000000
+            write(outfile,"$key\t$val\n")
         end
         close(outfile)
     end
@@ -299,8 +299,8 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
     outfile = open(outFile,"w")
     for (key,val) in frame_dict
         # write(outfile,"$key\t$val\n")
-        normalized_counts = (val/total_mapped_counts)*1000000
-        write(outfile,"$key\t$normalized_counts\t$val\n")
+        # normalized_counts = (val/total_mapped_counts)*1000000
+        write(outfile,"$key\t$val\n")
     end
     close(outfile)
 end

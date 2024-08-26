@@ -1,3 +1,5 @@
+globalVariables(c("average_exp", "norm_counts", "trancript_len"))
+
 #' Get information about longest transcripts in a GTF file
 #'
 #' This function uses a Python script to extract information about the longest
@@ -183,7 +185,6 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
     }) -> tmp
   }
 
-  # return(NULL)
 }
 
 
@@ -436,7 +437,8 @@ pre_gene_trans_density <- function(gene_anno = NULL,
 load_qc_data <- function(sample_name = NULL,
                          group_name = NULL){
   # load data
-  file <- list.files('1.QC-data/','.txt')
+  file <- list.files('1.QC-data/','.qc.txt')
+
   message("QC input files: ")
   message(paste0(file,sep = "\n"))
 
@@ -452,18 +454,21 @@ load_qc_data <- function(sample_name = NULL,
     group_name <- group_name
   }
 
+  # loop read file
   plyr::ldply(1:length(file),function(x){
     # tmp <- data.table::fread(paste('1.QC-data/',file[x],sep = ''))
     tmp <- vroom::vroom(file = paste('1.QC-data/',file[x],sep = ''),col_names = F,show_col_types = FALSE)
 
     colnames(tmp) <- c('length','framest','relst','framesp','relsp',
-                       'feature','trans_pos','trans_id','norm_counts','counts')
+                       'feature','trans_pos','trans_id','counts')
     # add sample
     tmp$sample <- sample_name[x]
     # add group
     tmp$group <- group_name[x]
+
     return(tmp)
   }) -> dfqc
+
 }
 
 
