@@ -57,7 +57,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
         
         # save in dict
         frame_dict = Dict{String,Int64}()
-        total_mapped_counts = 0
+        # total_mapped_counts = 0
 
         # open sam file
         reader = open(BAM.Reader,inputFile)
@@ -85,9 +85,9 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
 
                 # read flag tag
                 flag = BAM.flags(record)
-                if flag == 16 || flag == 0
-                    total_mapped_counts += 1
-                end
+                # if flag == 16 || flag == 0
+                #     total_mapped_counts += 1
+                # end
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
@@ -197,7 +197,7 @@ end
 function prepareQCdata_ontrans(;inFile,outFile,seqType)
     # save in dict
     frame_dict = Dict{String,Int64}()
-    total_mapped_counts = 0
+    # total_mapped_counts = 0
 
     # open sam file
     reader = open(BAM.Reader,inFile)
@@ -216,9 +216,9 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
             read_length = BAM.seqlength(record)
             flag = BAM.flags(record)
 
-            if flag == 16 || flag == 0
-                total_mapped_counts += 1
-            end
+            # if flag == 16 || flag == 0
+            #     total_mapped_counts += 1
+            # end
 
             # check 5'end mismatch
             # match_details = record["MD"]
