@@ -9,7 +9,7 @@ codon_occupancy(
   longest_trans_file = NULL,
   min_counts = 32,
   cds_fasta_file = NULL,
-  upstream_codon_exclude = 0,
+  upstream_codon_exclude = 5,
   downstream_codon_exclude = 0
 )
 }
@@ -27,7 +27,7 @@ in the analysis. Default is 32.}
 \item{cds_fasta_file}{A string specifying the path to the FASTA file containing CDS sequences.}
 
 \item{upstream_codon_exclude}{An integer specifying the number of codons to exclude from the start of the coding sequence.
-Default is 0.}
+Default is 5.}
 
 \item{downstream_codon_exclude}{An integer specifying the number of codons to exclude from the end of the coding sequence.
 Default is 0.}

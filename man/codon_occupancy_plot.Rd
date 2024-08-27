@@ -9,6 +9,7 @@ codon_occupancy_plot(
   sample_name = NULL,
   group_name = NULL,
   compare_var = NULL,
+  rm_stopcodon = FALSE,
   facet = FALSE,
   codon_type = c("codon", "amino")
 )
@@ -21,6 +22,8 @@ codon_occupancy_plot(
 \item{group_name}{An optional vector of group names for each sample.}
 
 \item{compare_var}{A vector of two variable names to compare.}
+
+\item{rm_stopcodon}{Whether remove stop codons. Default is FALSE.}
 
 \item{facet}{A logical value indicating whether to use faceting in the plot. Default is FALSE.}
 

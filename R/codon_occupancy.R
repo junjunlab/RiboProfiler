@@ -14,7 +14,7 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 #'        in the analysis. Default is 32.
 #' @param cds_fasta_file A string specifying the path to the FASTA file containing CDS sequences.
 #' @param upstream_codon_exclude An integer specifying the number of codons to exclude from the start of the coding sequence.
-#'        Default is 0.
+#'        Default is 5.
 #' @param downstream_codon_exclude An integer specifying the number of codons to exclude from the end of the coding sequence.
 #'        Default is 0.
 #'
@@ -28,12 +28,14 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 #'   - A text file for each sample containing codon position expression data.
 #'   - A text file for each sample containing codon occupancy data.
 #'
+#'
+#' @importFrom stats na.omit
 #' @export
 codon_occupancy <- function(qc_file = NULL,
                             longest_trans_file = NULL,
                             min_counts = 32,
                             cds_fasta_file = NULL,
-                            upstream_codon_exclude = 0,
+                            upstream_codon_exclude = 5,
                             downstream_codon_exclude = 0){
   # ============================================================================
   # gene annotation
@@ -81,7 +83,8 @@ codon_occupancy <- function(qc_file = NULL,
       # transpos trans_pos into codon pos
       dplyr::mutate(codon_pos = dplyr::if_else(trans_pos%%3 == 0, trans_pos/3,ceiling(trans_pos/3))) %>%
       dplyr::group_by(trans_id,codon_pos) %>%
-      dplyr::summarise(codon_exp = mean(norm_exp))
+      dplyr::summarise(codon_exp = mean(norm_exp)) %>%
+      na.omit()
 
     # output
     fname = paste("codon_occupancy/",sp[x],"_codon_pos_exp.txt",sep = "")
@@ -121,6 +124,7 @@ codon_occupancy <- function(qc_file = NULL,
 #' @param facet A logical value indicating whether to use faceting in the plot. Default is FALSE.
 #' @param codon_type A character string specifying whether to plot by codon or amino acid.
 #'        Options are "codon" or "amino". Default is c("codon", "amino").
+#' @param rm_stopcodon Whether remove stop codons. Default is FALSE.
 #'
 #' @return A ggplot object representing the codon occupancy plot.
 #'
@@ -153,6 +157,7 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
                                  sample_name = NULL,
                                  group_name = NULL,
                                  compare_var = NULL,
+                                 rm_stopcodon = FALSE,
                                  facet = FALSE,
                                  codon_type = c("codon","amino")){
   # ============================================================================
@@ -161,6 +166,11 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
   purrr::map_df(seq_along(codon_occupancy_file),function(x){
     tmp <- read.delim(codon_occupancy_file[x],header = F)
     colnames(tmp) <- c("codon","amino","abbreviation","density")
+
+    # whether remove stop codon
+    if(rm_stopcodon == TRUE){
+      tmp <- subset(tmp,amino != "Stop")
+    }
 
     tmp$sample <- sample_name[x]
 
