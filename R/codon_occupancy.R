@@ -77,7 +77,7 @@ codon_occupancy <- function(qc_file = NULL,
       dplyr::mutate(cdsft = dplyr::if_else(CDS_length%%3 == 0,1,0)) %>%
       # filter cds length %%3 == 0
       dplyr::filter(cdsft == 1) %>%
-      dplyr::mutate(trans_pos = trans_pos - `5UTR_length` + 1) %>%
+      dplyr::mutate(trans_pos = trans_pos - `5UTR_length`) %>%
       # fiter trans_pos in cds region
       dplyr::filter(trans_pos > upstream_codon_exclude*3  & trans_pos <= CDS_length - downstream_codon_exclude*3) %>%
       # transpos trans_pos into codon pos

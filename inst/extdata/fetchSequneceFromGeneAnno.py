@@ -53,7 +53,7 @@ def fetchSequneceFromGeneAnno(gene_file,genome_file,output_file,type = "cds",cod
                     if len(seq_Dict[key]) % 3 == 0:
                         seq_coding = Seq(seq_Dict[key])
                         aa_seq = str(seq_coding.translate(table = int(table),to_stop = True))
-                        aa_Dict[" ".join([">",tid," ",str(len(aa_seq))])] = aa_seq
+                        aa_Dict["".join([">",tid," ",str(len(aa_seq))])] = aa_seq
     
     ######################################################################################################                
     # output file

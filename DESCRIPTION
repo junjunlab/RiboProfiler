@@ -43,7 +43,8 @@ Imports:
     utils,
     vroom,
     zplyr,
-    tidyr
+    tidyr,
+    ggrepel
 Remotes:
   burchill/zplyr,
   jtlandis/ggside

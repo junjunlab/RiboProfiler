@@ -1,0 +1,58 @@
+import pyfastx
+
+def peptideMotifScore(amino_file,codon_exp_file,output_file,occurrence_threshold = 50):
+    ###########################################################################################
+    # 1_load amino fasta file
+    ###########################################################################################
+    amino = pyfastx.Fasta(amino_file)
+    
+    ###########################################################################################
+    # 2_get density for tripepetide density
+    ###########################################################################################
+    tripeptide_seq =  {}
+
+    with open(codon_exp_file,'r') as input:
+        for line in input:
+                trans_id,codon_pos,exp = line.split()
+                
+                # get tripeptide position
+                if int(codon_pos)%3 == 0:
+                    pos = int(codon_pos)//3
+                else:
+                    pos = int(int(codon_pos)//3) + 1
+                    
+                # check transid in AA fasta file
+                if trans_id in amino.keys():
+                    tripeptide_motif = amino.fetch(trans_id,(pos*3 - 2,pos*3))
+                
+                    # make sure length is 3
+                    if len(tripeptide_motif) == 3:
+                        # get tripeptide and save in dict
+                        if tripeptide_motif in tripeptide_seq:
+                            tmp_exp,tmp_count = tripeptide_seq[tripeptide_motif]
+                            tripeptide_seq[tripeptide_motif] = [float(exp) + tmp_exp,tmp_count + 1]
+                        else:
+                            tripeptide_seq[tripeptide_motif] = [float(exp),1]
+                        
+    ###########################################################################################
+    # 3_filter motif occurrence
+    ###########################################################################################
+    tripeptide_filtered = {}
+
+    # filter motifs with more than 100 occurrences
+    for key,val in tripeptide_seq.items():
+        if val[1] > occurrence_threshold:
+            tripeptide_filtered[key] = [val[0],val[1]]
+            
+    ###########################################################################################
+    # 3_filter motif occurrence
+    ###########################################################################################
+    total_motifs = 0
+    for key,val in tripeptide_filtered.items():
+        total_motifs += val[1]
+        
+    # output
+    out_file = open(output_file, 'w')
+    for key,val in tripeptide_filtered.items():
+        norm_val = (val[0]/(val[1]/total_motifs))/1000000
+        out_file.write("\t".join([key,str(norm_val)]) + '\n')
