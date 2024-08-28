@@ -9,7 +9,7 @@ codon_occupancy(
   longest_trans_file = NULL,
   min_counts = 32,
   cds_fasta_file = NULL,
-  upstream_codon_exclude = 5,
+  upstream_codon_exclude = 0,
   downstream_codon_exclude = 0
 )
 }

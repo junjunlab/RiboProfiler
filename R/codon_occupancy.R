@@ -35,7 +35,7 @@ codon_occupancy <- function(qc_file = NULL,
                             longest_trans_file = NULL,
                             min_counts = 32,
                             cds_fasta_file = NULL,
-                            upstream_codon_exclude = 5,
+                            upstream_codon_exclude = 0,
                             downstream_codon_exclude = 0){
   # ============================================================================
   # gene annotation
@@ -185,7 +185,7 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
   # check type
   # ============================================================================
   ylab <- paste("Difference of codon occupancy","\n",
-                "(",compare_var[1],"vs",compare_var[2],")",sep = "")
+                "(",compare_var[1]," vs ",compare_var[2],")",sep = "")
 
   if(codon_type == "amino"){
     if(!is.null(group_name)){
