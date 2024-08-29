@@ -136,7 +136,7 @@ qc_plot <- function(qc_data = NULL,
 #' one of "relst" (relative to start codon) or "relsp" (relative to stop codon).
 #' @param dist_range A numeric vector specifying the minimum and maximum distances
 #' to include in the plot. By default, the entire range(-50-100/-100-50) is included.
-#' @param shift A numeric value specifying the p site to shift, default 12.
+#' @param shift A numeric value specifying the p site to shift, default 0.
 #' @param geom_col_list A list of arguments to pass to the
 #' \code{\link[ggplot2]{geom_col}} layer.
 #' @param facet_wrap_list A list of arguments to pass to the
@@ -155,7 +155,7 @@ qc_plot <- function(qc_data = NULL,
 rel_to_start_stop <- function(qc_data = NULL,
                               type = c("relst","relsp"),
                               dist_range = NULL,
-                              shift = 12,
+                              shift = 0,
                               geom_col_list = list(),
                               facet_wrap_list = list()){
   options(warn=-1)
