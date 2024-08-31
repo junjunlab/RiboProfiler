@@ -61,6 +61,7 @@ get_nomalized_counts <- function(longest_trans_file = NULL,
 
     qc_df_new <- tmp %>%
       dplyr::left_join(y = gene_exp[,c("trans_id","average_exp")],by = "trans_id") %>%
+      dplyr::filter(trans_id %in% unique(gene_exp$trans_id)) %>%
       dplyr::mutate(norm_exp = counts/average_exp) %>%
       dplyr::select(-average_exp)
 

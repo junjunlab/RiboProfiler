@@ -8,7 +8,7 @@ rel_to_start_stop(
   qc_data = NULL,
   type = c("relst", "relsp"),
   dist_range = NULL,
-  shift = 12,
+  shift = 0,
   geom_col_list = list(),
   facet_wrap_list = list()
 )
@@ -22,7 +22,7 @@ one of "relst" (relative to start codon) or "relsp" (relative to stop codon).}
 \item{dist_range}{A numeric vector specifying the minimum and maximum distances
 to include in the plot. By default, the entire range(-50-100/-100-50) is included.}
 
-\item{shift}{A numeric value specifying the p site to shift, default 12.}
+\item{shift}{A numeric value specifying the p site to shift, default 0.}
 
 \item{geom_col_list}{A list of arguments to pass to the
 \code{\link[ggplot2]{geom_col}} layer.}
