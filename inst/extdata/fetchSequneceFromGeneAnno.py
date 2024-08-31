@@ -34,7 +34,7 @@ def fetchSequneceFromGeneAnno(gene_file,genome_file,output_file,type = "cds",cod
                     rg_slice[lensplice - 1] = ":".join([st,sp])
                 else:
                     st = str(int(rg_slice[0].split(":")[0]) - 3)
-                    sp = rg_slice[lensplice - 1].split(":")[1]
+                    sp = rg_slice[0].split(":")[1]
                     rg_slice[0] = ":".join([st,sp])
                 
                 # extract seqeunce from genome
