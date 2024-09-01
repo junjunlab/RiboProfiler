@@ -7,17 +7,19 @@
 #' @param offset_df A data frame containing the read lengths and offsets.
 #' @param qc_df A data frame containing quality control data with sample, length,
 #' relative start positions, and other relevant information.
+#' @param shift A shift for E/P/A site of reads position adjustment. Default 0.
 #'
 #' @return A data frame with adjusted relative start positions.
 #'
 #' @export
 adjust_offset <- function(offset_df = NULL,
-                          qc_df = NULL){
+                          qc_df = NULL,
+                          shift = 0){
   df_offset <- offset_df |>
     tidyr::separate_longer_delim(c(readLengths,Offsets),delim = ",") |>
     dplyr::rename(length = readLengths) |>
     dplyr::mutate(length = as.numeric(length),
-                  Offsets = as.numeric(Offsets))
+                  Offsets = abs(as.numeric(Offsets)) + shift)
 
   length_rpf <- unique(df_offset$length)
 

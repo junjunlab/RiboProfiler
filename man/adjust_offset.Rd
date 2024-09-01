@@ -4,13 +4,15 @@
 \alias{adjust_offset}
 \title{Adjust Offset for RPF}
 \usage{
-adjust_offset(offset_df = NULL, qc_df = NULL)
+adjust_offset(offset_df = NULL, qc_df = NULL, shift = 0)
 }
 \arguments{
 \item{offset_df}{A data frame containing the read lengths and offsets.}
 
 \item{qc_df}{A data frame containing quality control data with sample, length,
 relative start positions, and other relevant information.}
+
+\item{shift}{A shift for E/P/A site of reads position adjustment. Default 0.}
 }
 \value{
 A data frame with adjusted relative start positions.
