@@ -70,7 +70,7 @@ peptide_motif_score <- function(amino_file = NULL,
 #' This function generates a scatter plot comparing tripeptide occupancy scores between two samples or groups.
 #'
 #' @param occupancy_file A vector of file paths to tripeptide occupancy score files.
-#' @param sampe_name A vector of sample names corresponding to each occupancy file.
+#' @param sample_name A vector of sample names corresponding to each occupancy file.
 #' @param group_name An optional vector of group names for each sample.
 #' @param mark_motif A vector of motifs to highlight in the plot.
 #' @param mark_color The color to use for highlighted motifs. Default is "orange".
@@ -95,15 +95,15 @@ peptide_motif_score <- function(amino_file = NULL,
 #'
 #' @export
 triAmino_scater_plot <- function(occupancy_file = NULL,
-                                 sampe_name = NULL,
+                                 sample_name = NULL,
                                  group_name = NULL,
                                  mark_motif = NULL,
                                  mark_color = "orange"){
   purrr::map_df(seq_along(occupancy_file),function(x){
-    tmp <- read.delim(occupancy_file[x],header = F)
+    tmp <- readr::read.delim(occupancy_file[x],header = F)
     colnames(tmp) <- c("motif","score")
 
-    tmp$sample <- sampe_name[x]
+    tmp$sample <- sample_name[x]
 
     if(!is.null(group_name)){
       tmp$group <- group_name[x]
@@ -121,7 +121,7 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
       tidyr::spread(group,score) %>%
       na.omit()
   }else{
-    var <- sampe_name
+    var <- sample_name
     df_plot_wide <- df_plot %>%
       tidyr::spread(sample,score) %>%
       na.omit()
@@ -152,3 +152,80 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
     labs(title = "tripeptide pausing score")
 
 }
+
+
+
+
+
+
+#' Plot Tri-amino Acid Motifs
+#'
+#' This function takes motif occupancy data and generates a plot using the ggseqlogo
+#' package to visualize the frequency or probability of amino acid motifs. It handles
+#' multiple samples and can average scores across specified groups.
+#'
+#' @param occupancy_file Vector of strings; paths to the occupancy files containing
+#'        motifs and their scores.
+#' @param sample_name Vector of strings; names of the samples corresponding to each
+#'        file. Used for labeling in the absence of a group name.
+#' @param group_name Optional; vector of strings providing group names for each sample.
+#'        If provided, scores are averaged across groups.
+#' @param top_motif Integer; number of top motifs to display based on their ratio.
+#' @return A ggplot object displaying the sequence logo of top motifs based on the
+#'         calculated ratio.
+#' @examples
+#' \dontrun{triAmino_motif_plot(occupancy_file = c("path/to/file1.txt", "path/to/file2.txt"),
+#'                     sample_name = c("sample1", "sample2"),
+#'                     group_name = c("group1", "group1"),
+#'                     top_motif = 5)}
+#'
+#' @importFrom ggseqlogo ggseqlogo
+#'
+#' @export
+triAmino_motif_plot <- function(occupancy_file = NULL,
+                                sample_name = NULL,
+                                group_name = NULL,
+                                top_motif = NULL){
+  # x = 1
+  purrr::map_df(seq_along(occupancy_file),function(x){
+    tmp <- readr::read.delim(occupancy_file[x],header = F)
+    colnames(tmp) <- c("motif","score")
+
+    tmp$sample <- sample_name[x]
+
+    if(!is.null(group_name)){
+      tmp$group <- group_name[x]
+    }
+
+    return(tmp)
+  }) -> df_plot
+
+  # get mean score for different groups
+  if(!is.null(group_name)){
+    var <- group_name
+    df_plot <- df_plot %>%
+      dplyr::group_by(group) %>%
+      dplyr::summarise(score = mean(score)) %>%
+      tidyr::spread(group,score) %>%
+      na.omit()
+  }else{
+    var <- sample_name
+    df_plot_wide <- df_plot %>%
+      tidyr::spread(sample,score) %>%
+      na.omit()
+  }
+
+  df_plot_wide <- df_plot_wide %>%
+    dplyr::mutate(ratio = .data[[var[2]]]/.data[[var[1]]]) %>%
+    dplyr::arrange(dplyr::desc(ratio)) %>%
+    head(n = top_motif)
+
+  # plot
+  ggseqlogo::ggseqlogo(data = df_plot_wide$motif,method="prob",col_scheme = "chemistry") +
+    theme_bw() +
+    theme(panel.grid = element_blank(),
+          axis.text = element_text(colour = "black")) +
+    scale_x_continuous(labels = c("E","P","A"),breaks = c(1,2,3))
+
+}
+

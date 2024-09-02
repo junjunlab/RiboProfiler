@@ -32,7 +32,7 @@ whole_metagene_plot <- function(gene_file = NULL,
   # ===================================================================================================
   # load gene annotation
   # ===================================================================================================
-  ganao <- read.delim(gene_file,header = F)
+  ganao <- readr::read.delim(gene_file,header = F)
   colnames(ganao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
                        "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
 

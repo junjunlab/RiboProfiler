@@ -9,16 +9,19 @@ track_plot(
   gene_anno = NULL,
   plot_type = c("translatome", "interactome"),
   add_gene_struc = TRUE,
+  structure_label_y = -3,
+  structure_label_size = 2.5,
   structure_col = NULL,
   background_col = "white",
   range_pos = c(0.8, 0.85),
+  signal_range_digits = 0,
   reverse_rna = TRUE,
   rna_signal_scale = 1,
   signal_col = NULL,
   line_col = NULL,
   panel_size = NULL,
   remove_all_panel_border = FALSE,
-  remove_trans_panel_border = FALSE,
+  remove_trans_panel_border = TRUE,
   gene_order = NULL,
   sample_order = NULL,
   fixed_col_range = TRUE,
@@ -42,11 +45,18 @@ track_plot(
 
 \item{add_gene_struc}{Whether add gene structure plot. Default is TRUE.}
 
+\item{structure_label_y}{The y position of gene structure, defalut -3.}
+
+\item{structure_label_size}{The text size of gene structure labels, defalut 2.5.}
+
 \item{structure_col}{Color of the gene structure rectangles.}
 
 \item{background_col}{Color of the plot background. Default is "grey90".}
 
 \item{range_pos}{Position of the range labels. Default is c(0.85,0.85).}
+
+\item{signal_range_digits}{The signal range digits, you can set it bigger when
+signal range is small than 1, defalut 0.}
 
 \item{reverse_rna}{Whether reverse RNA track. Default is TRUE.}
 
@@ -67,7 +77,7 @@ of each panel. Default is NULL, which means using a default panel size.}
 borders. Default is FALSE.}
 
 \item{remove_trans_panel_border}{Logical indicating whether to remove the
-border of the transcript panel only. Default is FALSE.}
+border of the transcript panel only. Default is TRUE.}
 
 \item{gene_order}{An optional character vector specifying the order of genes
 in the plot. By default, genes are ordered by their appearance in the input data.}

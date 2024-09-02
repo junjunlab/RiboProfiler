@@ -6,7 +6,7 @@
 \usage{
 triAmino_scater_plot(
   occupancy_file = NULL,
-  sampe_name = NULL,
+  sample_name = NULL,
   group_name = NULL,
   mark_motif = NULL,
   mark_color = "orange"
@@ -15,7 +15,7 @@ triAmino_scater_plot(
 \arguments{
 \item{occupancy_file}{A vector of file paths to tripeptide occupancy score files.}
 
-\item{sampe_name}{A vector of sample names corresponding to each occupancy file.}
+\item{sample_name}{A vector of sample names corresponding to each occupancy file.}
 
 \item{group_name}{An optional vector of group names for each sample.}
 

@@ -1,5 +1,5 @@
 globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", "cdsft", "codon", "norm_exp",
-                  "readLengths", "total_counts", "trans_pos"))
+                  "readLengths", "total_counts", "trans_pos", "anno", "relsp"))
 
 #' Calculate Codon Occupancy
 #'
@@ -42,7 +42,7 @@ codon_occupancy <- function(qc_file = NULL,
   # ============================================================================
   dir.create("codon_occupancy",showWarnings = FALSE)
 
-  ganao <- read.delim(longest_trans_file,header = F)
+  ganao <- readr::read.delim(longest_trans_file,header = F)
   colnames(ganao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
                        "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
 
@@ -58,11 +58,11 @@ codon_occupancy <- function(qc_file = NULL,
       dplyr::filter(sample == sp[x])
 
     total_exp <- inputfile %>%
+      dplyr::left_join(y = ganao,by = "trans_id") %>%
+      dplyr::filter(trans_pos >= `5UTR_length` & trans_pos <= `5UTR_length` + CDS_length) %>%
       dplyr::group_by(trans_id) %>%
-      dplyr::summarise(total_exp = sum(norm_exp),
-                       total_counts = sum(counts)) %>%
+      dplyr::summarise(total_counts = sum(counts)) %>%
       dplyr::filter(total_counts >= min_counts)
-
 
     ganao <- ganao[,c("trans_id","5UTR_length","CDS_length","3UTR_length")] %>%
       dplyr::filter(trans_id %in% total_exp$trans_id)
@@ -125,6 +125,7 @@ codon_occupancy <- function(qc_file = NULL,
 #' @param codon_type A character string specifying whether to plot by codon or amino acid.
 #'        Options are "codon" or "amino". Default is c("codon", "amino").
 #' @param rm_stopcodon Whether remove stop codons. Default is FALSE.
+#' @param col The color fill types for plot. Default is c("normal","chemistry"),
 #'
 #' @return A ggplot object representing the codon occupancy plot.
 #'
@@ -158,8 +159,10 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
                                  group_name = NULL,
                                  compare_var = NULL,
                                  rm_stopcodon = FALSE,
+                                 col = c("normal","chemistry"),
                                  facet = FALSE,
                                  codon_type = c("codon","amino")){
+  col <- match.arg(col,c("normal","chemistry"))
   # ============================================================================
   # loop load file
   # ============================================================================
@@ -188,6 +191,12 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
                 "(",compare_var[1]," vs ",compare_var[2],")",sep = "")
 
   if(codon_type == "amino"){
+    # prepare amino acids annotations
+    chemistry = data.frame(
+      abbreviation = c('G', 'S', 'T', 'Y', 'C', 'N', 'Q', 'K', 'R', 'H', 'D', 'E', 'P', 'A', 'W', 'F', 'L', 'I', 'M', 'V'),
+      anno = c(rep('Polar', 5), rep('Neutral', 2), rep('Basic', 3), rep('Acidic', 2), rep('Hydrophobic', 8)),
+      stringsAsFactors = F)
+
     if(!is.null(group_name)){
       df_codon <- codon_oc %>%
         group_by(group_name,abbreviation) %>%
@@ -202,22 +211,42 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
     }
 
     df_codon <- df_codon %>%
+      dplyr::left_join(y = chemistry,by = "abbreviation")
+
+    df_codon <- df_codon %>%
       dplyr::mutate(ratio = log2(.data[[compare_var[1]]]/.data[[compare_var[2]]])) %>%
       dplyr::arrange(dplyr::desc(ratio))
+
+    if(col == "chemistry"){
+      df_codon <- df_codon %>% na.omit()
+      col_layer <- geom_col(aes(x = abbreviation,y = ratio,fill = anno),
+                            show.legend = T,width = 0.5)
+
+      amino_cols <- c('#109648','#5E239D','#255C99','#D62839','#221E22')
+      names(amino_cols) <- c("Polar","Neutral","Basic","Acidic","Hydrophobic")
+      color_layer <- scale_fill_manual(values = amino_cols,name = "Amino acids types")
+    }else{
+      col_layer <- geom_col(aes(x = abbreviation,y = ratio,fill = abbreviation),
+                            show.legend = F,width = 0.5)
+
+      color_layer <- scale_color_brewer()
+    }
 
     # order
     df_codon$abbreviation <- factor(df_codon$abbreviation,levels = df_codon$abbreviation)
 
     # plot
     ggplot(df_codon) +
-      geom_col(aes(x = abbreviation,y = ratio,fill = abbreviation),
-               show.legend = F,width = 0.5) +
+      # geom_col(aes(x = abbreviation,y = ratio,fill = abbreviation),
+      #          show.legend = F,width = 0.5) +
+      col_layer +
       geom_hline(yintercept = 0,lty = "solid",color = "black",linewidth = 0.75) +
       theme_bw() +
       theme(panel.grid = element_blank(),
             axis.text = element_text(color = "black")) +
       ylab(ylab) +
-      xlab("Codons / Amino acids")
+      xlab("Codons / Amino acids") +
+      color_layer
   }else{
     if(!is.null(group_name)){
       df_codon <- codon_oc %>%
@@ -267,4 +296,52 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
     }
 
   }
+}
+
+
+
+
+
+
+
+#' Generate Track Data Frame for Selected Genes
+#'
+#' This function extracts and prepares track data for selected genes from gene annotation and normalized expression files.
+#' It filters gene annotation data for selected genes, merges it with normalized expression data, and formats it for further analysis or visualization.
+#'
+#' @param longest_trans_file A string specifying the file path to the longest transcript data, which includes gene annotations. Expected to be a delimited file without headers. Default is NULL.
+#' @param select_gene A character vector of gene names to filter the gene annotation data. If NULL, no filtering is applied. Default is NULL.
+#' @param normed_file A data frame or a string specifying the file path to the normalized gene expression data, which should include `trans_id` and `norm_exp` columns among others. Default is NULL.
+#'
+#' @return A data frame containing the filtered and transformed data suitable for tracking gene expression. The returned data frame includes columns for sample, gene name, transcript ID, transcript position (transpos), normalized expression (density), and a fixed column (type) set to 'ribo'.
+#'
+#' @importFrom dplyr filter select left_join rename mutate
+#' @importFrom readr read_delim
+#' @examples
+#' \dontrun{# Assuming `longest_trans_file` and `normed_file` are already defined:
+#' track_df <- get_track_df(
+#'   longest_trans_file = "path/to/longest_transcripts.tsv",
+#'   select_gene = c("Gene1", "Gene2"),
+#'   normed_file = expression_data_frame
+#' )}
+#'
+#' @export
+get_track_df <- function(longest_trans_file = NULL,
+                         select_gene = NULL,
+                         normed_file = NULL){
+  # gene annotation
+  gene_anao <- read.delim(longest_trans_file,header = F)
+  colnames(gene_anao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
+                           "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
+
+  gene_selected <- gene_anao %>%
+    dplyr::select(gene_name,trans_id,`5UTR_length`,CDS_length,`3UTR_length`) %>%
+    dplyr::filter(gene_name %in% select_gene)
+
+  track_df <- normed_file %>%
+    dplyr::filter(trans_id %in% gene_selected$trans_id) %>%
+    dplyr::left_join(y = gene_selected,by = "trans_id") %>%
+    dplyr::select(sample,gene_name,trans_id,trans_pos,norm_exp) %>%
+    dplyr::rename(density = norm_exp,transpos = trans_pos) %>%
+    dplyr::mutate(type = "ribo")
 }

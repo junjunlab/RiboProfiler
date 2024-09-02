@@ -10,6 +10,7 @@ codon_occupancy_plot(
   group_name = NULL,
   compare_var = NULL,
   rm_stopcodon = FALSE,
+  col = c("normal", "chemistry"),
   facet = FALSE,
   codon_type = c("codon", "amino")
 )
@@ -24,6 +25,8 @@ codon_occupancy_plot(
 \item{compare_var}{A vector of two variable names to compare.}
 
 \item{rm_stopcodon}{Whether remove stop codons. Default is FALSE.}
+
+\item{col}{The color fill types for plot. Default is c("normal","chemistry"),}
 
 \item{facet}{A logical value indicating whether to use faceting in the plot. Default is FALSE.}
 

@@ -56,7 +56,7 @@ codon_track_plot <- function(codon_exp_file = NULL,
   # ============================================================================
   # gene annotation
   # ============================================================================
-  ganao <- read.delim(longest_trans_file,header = F)
+  ganao <- readr::read.delim(longest_trans_file,header = F)
   colnames(ganao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
                        "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
   ganao <- ganao[,c("gene_name","gene_id","trans_id")]

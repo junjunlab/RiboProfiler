@@ -272,7 +272,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @param remove_all_panel_border Logical indicating whether to remove all panel
 #' borders. Default is FALSE.
 #' @param remove_trans_panel_border Logical indicating whether to remove the
-#' border of the transcript panel only. Default is FALSE.
+#' border of the transcript panel only. Default is TRUE.
 #' @param gene_order An optional character vector specifying the order of genes
 #' in the plot. By default, genes are ordered by their appearance in the input data.
 #' @param sample_order An optional character vector specifying the order of
@@ -293,6 +293,10 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' "interactome" plot type to overwrite params.
 #' @param geom_ribbon_params The parameters passed by ggplot2::geom_ribbon function for
 #' "interactome" plot type to overwrite params.
+#' @param structure_label_y The y position of gene structure, defalut -3.
+#' @param structure_label_size The text size of gene structure labels, defalut 2.5.
+#' @param signal_range_digits The signal range digits, you can set it bigger when
+#' signal range is small than 1, defalut 0.
 #'
 #' @importFrom zplyr geom_abs_text
 #' @importFrom ggh4x facet_nested facetted_pos_scales force_panelsizes
@@ -303,16 +307,19 @@ track_plot <- function(signal_data = NULL,
                        gene_anno = NULL,
                        plot_type = c("translatome","interactome"),
                        add_gene_struc = TRUE,
+                       structure_label_y = -3,
+                       structure_label_size = 2.5,
                        structure_col = NULL,
                        background_col = "white",
                        range_pos = c(0.8,0.85),
+                       signal_range_digits = 0,
                        reverse_rna = TRUE,
                        rna_signal_scale = 1,
                        signal_col = NULL,
                        line_col = NULL,
                        panel_size = NULL,
                        remove_all_panel_border = FALSE,
-                       remove_trans_panel_border = FALSE,
+                       remove_trans_panel_border = TRUE,
                        gene_order = NULL,
                        sample_order = NULL,
                        fixed_col_range = TRUE,
@@ -446,12 +453,12 @@ track_plot <- function(signal_data = NULL,
     # check plot_type
     if(plot_type == "interactome"){
       track_range <- track_range %>%
-        dplyr::summarise(min_v = round(min(density - density_sd),digits = 2),
-                         max_v = round(max(density + density_sd),digits = 2))
+        dplyr::summarise(min_v = round(min(density - density_sd),digits = signal_range_digits),
+                         max_v = round(max(density + density_sd),digits = signal_range_digits))
     }else if(plot_type == "translatome"){
       track_range <- track_range %>%
-        dplyr::summarise(min_v = round(min(density),digits = 2),
-                         max_v = round(max(density),digits = 2))
+        dplyr::summarise(min_v = round(min(density),digits = signal_range_digits),
+                         max_v = round(max(density),digits = signal_range_digits))
     }
 
 
@@ -622,8 +629,8 @@ track_plot <- function(signal_data = NULL,
                     fill = region),show.legend = FALSE) +
       scale_fill_manual(values = structure_col,name = "") +
       geom_text(data = structure_df,
-                mapping = aes(x = (start + end)/2,y = -2,label = region),
-                size = 3,fontface = "bold.italic")
+                mapping = aes(x = (start + end)/2,y = structure_label_y,label = region),
+                size = structure_label_size,fontface = "bold.italic")
   }else{
     ptheme <- p
   }
@@ -651,7 +658,8 @@ track_plot <- function(signal_data = NULL,
             axis.text.y = element_text(),
             axis.ticks.y = element_line(),
             legend.text = element_text(face = "bold"),
-            panel.background = element_rect(fill = alpha(background_col,0.5)))
+            panel.background = element_rect(fill = alpha(background_col,0.5))) +
+      coord_cartesian(clip = "off")
   }else{
     ptheme <- ptheme +
       zplyr::geom_abs_text(data = track_range,
@@ -664,7 +672,8 @@ track_plot <- function(signal_data = NULL,
             axis.text.y = element_blank(),
             axis.ticks.y = element_blank(),
             legend.text = element_text(face = "bold"),
-            panel.background = element_rect(fill = alpha(background_col,0.5)))
+            panel.background = element_rect(fill = alpha(background_col,0.5))) +
+      coord_cartesian(clip = "off")
   }
 
   # whether show x ticks
@@ -742,7 +751,8 @@ track_plot <- function(signal_data = NULL,
 #'
 #' @export
 plot_mapinfo <- function(mapinfo_file = NULL,file_name = NULL,
-                         plot_type = c("barplot","table"),geom_col_params = list()){
+                         plot_type = c("barplot","table"),
+                         geom_col_params = list()){
   plot_type <- match.arg(plot_type,c("barplot","table"))
 
   # define extract func

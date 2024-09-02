@@ -452,7 +452,7 @@ batch_hisat_align <- function(index = NULL,
 #'
 #' @return The function invisibly returns a list containing the output file paths.
 #'
-#' @import GenomicAlignments
+#' @importFrom GenomicAlignments readGAlignmentPairs readGAlignments
 #' @importFrom IRanges coverage
 #' @importFrom rtracklayer export.bw
 #' @importFrom methods as

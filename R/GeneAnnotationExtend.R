@@ -23,7 +23,7 @@ gene_anno_extend <- function(longest_trans_file = NULL,
                              downstream_extend = NULL,
                              output_file = NULL){
   # extend region 50nt upstream and downstream
-  df <- read.delim(longest_trans_file,header = F)
+  df <- readr::read.delim(longest_trans_file,header = F)
 
   # add colnames
   colnames(df) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
@@ -121,7 +121,7 @@ globalVariables(c("3UTR_length", "5UTR_length", "CDS_length"))
 #' @export
 gene_anno2Ribominer <- function(longest_trans_file = NULL,
                                 output_file = NULL){
-  gene_anno <- read.delim(longest_trans_file,header = F)
+  gene_anno <- readr::read.delim(longest_trans_file,header = F)
 
   # add colnames
   colnames(gene_anno) <- c("id","gene_name","gene_id","trans_id","chrom","strand",

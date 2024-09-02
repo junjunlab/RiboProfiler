@@ -11,7 +11,9 @@
 #' @param motif Character, the specific motif to search for, default is NULL.
 #' @param upstream Integer, upstream distance to consider relative to motif position, default is -50.
 #' @param downstream Integer, downstream distance to consider relative to motif position, default is 50.
+#'
 #' @return Invisible NULL, as the function primarily writes output to files.
+#'
 #' @examples
 #' \dontrun{rel_dist_motif(amino_file = "amino_seq.txt",
 #'                longest_trans_file = "longest_transcripts.txt",
@@ -38,6 +40,17 @@ rel_dist_motif <- function(amino_file = NULL,
 
   sp <- unique(normed_file$sample)
 
+  # ====================================================================================
+  # gene annotation
+  # ====================================================================================
+  gene_anao <- readr::read.delim(longest_trans_file,header = F)
+  colnames(gene_anao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
+                           "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
+
+  # filter cds length
+  gene_lenth <- gene_anao %>%
+    dplyr::select(trans_id,`5UTR_length`,CDS_length,`3UTR_length`)
+
   # loop output
   # x = 1
   lapply(seq_along(sp),function(x){
@@ -45,6 +58,8 @@ rel_dist_motif <- function(amino_file = NULL,
 
     # filter low counts
     total_exp <- tmp %>%
+      dplyr::left_join(y = gene_lenth,by = "trans_id") %>%
+      dplyr::filter(trans_pos >= `5UTR_length` & trans_pos <= `5UTR_length` + CDS_length) %>%
       dplyr::group_by(trans_id) %>%
       dplyr::summarise(total_counts = sum(counts)) %>%
       dplyr::filter(total_counts >= min_counts)
@@ -109,7 +124,9 @@ rel_dist_motif <- function(amino_file = NULL,
 #' @param motif Character, the specific motif being analyzed.
 #' @param site Character, label for the site being considered in the motif analysis,
 #'        default is "P" (e.g., for the Peptidyl site in ribosome profiling).
+#'
 #' @return An ggplot object showing the relative motif occupancy plot.
+#'
 #' @examples
 #' \dontrun{rel_dist_motif_plot(motif_occupancy_file = c("sample1.txt", "sample2.txt"),
 #'                     sample_name = c("sample1", "sample2"),

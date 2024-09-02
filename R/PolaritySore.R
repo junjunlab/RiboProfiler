@@ -42,7 +42,7 @@ calculatePolarity <- function(gene_anno_file = NULL,
   # ========================================================================================
   # load gene annotation
   # ========================================================================================
-  gene_anno <- read.delim("longest_info.txt",header = F)
+  gene_anno <- readr::read.delim("longest_info.txt",header = F)
 
   # add colnames
   colnames(gene_anno) <- c("id","gene_name","gdi","tid","chr","strand","cds_rg","exon_rg","utr5","cds","utr3")

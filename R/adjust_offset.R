@@ -28,6 +28,7 @@ adjust_offset <- function(offset_df = NULL,
     dplyr::filter(length %in% length_rpf) |>
     dplyr::left_join(y = df_offset,by = c("sample","length")) |>
     dplyr::mutate(relst = relst + abs(Offsets),
+                  relsp = relsp + abs(Offsets),
                   trans_pos = trans_pos + abs(Offsets)) |>
     dplyr::select(-Offsets,-bamFiles, -bamLegends)
 
