@@ -100,7 +100,7 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
                                  mark_motif = NULL,
                                  mark_color = "orange"){
   purrr::map_df(seq_along(occupancy_file),function(x){
-    tmp <- readr::read.delim(occupancy_file[x],header = F)
+    tmp <- read.delim(occupancy_file[x],header = F)
     colnames(tmp) <- c("motif","score")
 
     tmp$sample <- sample_name[x]
@@ -188,7 +188,7 @@ triAmino_motif_plot <- function(occupancy_file = NULL,
                                 top_motif = NULL){
   # x = 1
   purrr::map_df(seq_along(occupancy_file),function(x){
-    tmp <- readr::read.delim(occupancy_file[x],header = F)
+    tmp <- read.delim(occupancy_file[x],header = F)
     colnames(tmp) <- c("motif","score")
 
     tmp$sample <- sample_name[x]

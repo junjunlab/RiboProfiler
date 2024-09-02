@@ -25,6 +25,7 @@
 #'                upstream = -50,
 #'                downstream = 50)}
 #'
+#'
 #' @export
 rel_dist_motif <- function(amino_file = NULL,
                            longest_trans_file = NULL,
@@ -43,7 +44,7 @@ rel_dist_motif <- function(amino_file = NULL,
   # ====================================================================================
   # gene annotation
   # ====================================================================================
-  gene_anao <- readr::read.delim(longest_trans_file,header = F)
+  gene_anao <- read.delim(longest_trans_file,header = F)
   colnames(gene_anao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
                            "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
 
@@ -133,6 +134,7 @@ rel_dist_motif <- function(amino_file = NULL,
 #'                     group_name = c("group1", "group1"),
 #'                     motif = "PKP",
 #'                     site = "P")}
+#'
 #'
 #' @export
 rel_dist_motif_plot <- function(motif_occupancy_file = NULL,

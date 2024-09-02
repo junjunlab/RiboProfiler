@@ -29,6 +29,7 @@ globalVariables(c("avergae_exp", "group_name", "mean_exp"))
 #' @import dplyr
 #' @import purrr
 #' @importFrom rlang sym
+#'
 #' @examples
 #' \dontrun{# Assuming `longest_trans_file` and `normed_file` are paths to your data files:
 #' metagene_plot(
@@ -64,7 +65,7 @@ metagene_plot <- function(longest_trans_file = NULL,
   # ====================================================================================
   # gene annotation
   # ====================================================================================
-  gene_anao <- readr::read.delim(longest_trans_file,header = F)
+  gene_anao <- read.delim(longest_trans_file,header = F)
   colnames(gene_anao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
                            "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
 

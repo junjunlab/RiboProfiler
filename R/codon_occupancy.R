@@ -30,6 +30,7 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 #'
 #'
 #' @importFrom stats na.omit
+#'
 #' @export
 codon_occupancy <- function(qc_file = NULL,
                             longest_trans_file = NULL,
@@ -42,7 +43,7 @@ codon_occupancy <- function(qc_file = NULL,
   # ============================================================================
   dir.create("codon_occupancy",showWarnings = FALSE)
 
-  ganao <- readr::read.delim(longest_trans_file,header = F)
+  ganao <- read.delim(longest_trans_file,header = F)
   colnames(ganao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
                        "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
 
@@ -152,6 +153,7 @@ codon_occupancy <- function(qc_file = NULL,
 #' )}
 #'
 #' @importFrom ggh4x weave_factors
+#'
 #'
 #' @export
 codon_occupancy_plot <- function(codon_occupancy_file = NULL,
@@ -316,7 +318,7 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
 #' @return A data frame containing the filtered and transformed data suitable for tracking gene expression. The returned data frame includes columns for sample, gene name, transcript ID, transcript position (transpos), normalized expression (density), and a fixed column (type) set to 'ribo'.
 #'
 #' @importFrom dplyr filter select left_join rename mutate
-#' @importFrom readr read_delim
+#'
 #' @examples
 #' \dontrun{# Assuming `longest_trans_file` and `normed_file` are already defined:
 #' track_df <- get_track_df(
