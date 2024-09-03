@@ -186,5 +186,5 @@ metagene_plot <- function(longest_trans_file = NULL,
           strip.text = element_text(colour = "black",face = "bold",size = rel(1)),
           axis.text = element_text(colour = "black")) +
     xlab(paste("Distance from start/stop codon ","(",mode,")",sep = "")) +
-    ylab("Relative footprint density (AU)")
+    ylab("Average normalized footprint density\n (AU)")
 }
