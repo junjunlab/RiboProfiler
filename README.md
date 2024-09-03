@@ -1,4 +1,4 @@
-# RiboProfiler <img src="man/logo.png" align="right" height="200" />
+# RiboProfiler <img src="man/ribosome2.png" align="right" height="200" />
 
 <!-- badges: start -->
 
