@@ -19,7 +19,7 @@ adjust_offset <- function(offset_df = NULL,
     tidyr::separate_longer_delim(c(readLengths,Offsets),delim = ",") |>
     dplyr::rename(length = readLengths) |>
     dplyr::mutate(length = as.numeric(length),
-                  Offsets = abs(as.numeric(Offsets)) + shift)
+                  Offsets = as.numeric(Offsets))
 
   length_rpf <- unique(df_offset$length)
 
@@ -29,7 +29,7 @@ adjust_offset <- function(offset_df = NULL,
     dplyr::left_join(y = df_offset,by = c("sample","length")) |>
     dplyr::mutate(relst = relst + abs(Offsets),
                   relsp = relsp + abs(Offsets),
-                  trans_pos = trans_pos + abs(Offsets)) |>
+                  trans_pos = trans_pos + -(Offsets) + shift) |>
     dplyr::select(-Offsets,-bamFiles, -bamLegends)
 
   return(shift_offset)
