@@ -11,6 +11,7 @@ pre_qc_data(
   sam_file = NULL,
   bam_file = NULL,
   out_file = NULL,
+  assignType = c("end5", "end3"),
   seq_type = c("pairedEnd", "singleEnd")
 )
 }
@@ -28,6 +29,8 @@ file.}
 
 \item{out_file}{A character vector specifying the paths to the output QC result
 files.}
+
+\item{assignType}{The reads assignment type, 5'end or 3'end. Default 5'end.}
 
 \item{seq_type}{The sequencing type for fastq files, "singleEnd" or "pairedEnd".}
 }

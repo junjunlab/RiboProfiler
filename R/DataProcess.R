@@ -94,6 +94,7 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #' @param out_file A character vector specifying the paths to the output QC result
 #' files.
 #' @param seq_type The sequencing type for fastq files, "singleEnd" or "pairedEnd".
+#' @param assignType The reads assignment type, 5'end or 3'end. Default 5'end.
 #'
 #' @return The function does not return a value, but outputs QC results in text
 #' files.
@@ -114,9 +115,11 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
                         sam_file = NULL,
                         bam_file = NULL,
                         out_file = NULL,
+                        assignType = c("end5","end3"),
                         seq_type = c("pairedEnd","singleEnd")){
   mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
   seq_type <- match.arg(seq_type,c("pairedEnd","singleEnd"))
+  assignType <- match.arg(assignType,c("end5","end3"))
 
   if(!dir.exists("1.QC-data")){
     dir.create("1.QC-data")
@@ -163,6 +166,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
     outFile_tmp = paste("1.QC-data/",out_file,sep = "")
     prepareQCdata(longestTransInfo = longest_trans_file,
                   inFile = inFile,
+                  assignType = assignType,
                   outFile = paste0(outFile_tmp,collapse = ","),
                   seqType = seq_type)
   }else if(mapping_type == "transcriptome"){
@@ -180,6 +184,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
       outFile_tmp = paste("1.QC-data/",out_file[x],sep = "")
       prepareQCdata(inFile = inFile[x],
                     outFile = outFile_tmp,
+                    assignType = assignType,
                     seqType = seq_type)
       message(paste(inFile[x]," has been processed!",sep = ""))
     }) -> tmp

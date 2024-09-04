@@ -8,7 +8,7 @@ using XAM
 ###################################################################
 # 1.load gene fearures positions and transform into trans position
 ###################################################################
-function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
+function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
     geneinfoDict = Dict{String, Array}()
 
     open(longestTransInfo, "r") do geneinfo
@@ -53,7 +53,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
     ################################################################
 
     # define function
-    function RiboQcAnalysis(inputFile,outputFile;seq_type)
+    function RiboQcAnalysis(inputFile,outputFile;seq_type,assignType)
         
         # save in dict
         frame_dict = Dict{String,Int64}()
@@ -125,9 +125,16 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType)
                     # get gene info
                     start_codon_pos,stop_codon_pos,transPos,transid = geneinfoDict[readKey]
                     
-                    # relative distance
-                    rel2st = transPos - start_codon_pos
-                    rel2sp = transPos - stop_codon_pos
+                    # check assign type
+                    if assignType == "end5"
+                        # relative distance
+                        rel2st = transPos - start_codon_pos
+                        rel2sp = transPos - stop_codon_pos
+                    else
+                        # relative distance
+                        rel2st = transPos + read_length - 1 - start_codon_pos
+                        rel2sp = transPos + read_length - 1 - stop_codon_pos
+                    end
 
                     # assign frame
                     frame_st = abs(rel2st)%3
@@ -195,7 +202,7 @@ end
 ##############################################################################################################
 
 # define function
-function prepareQCdata_ontrans(;inFile,outFile,seqType)
+function prepareQCdata_ontrans(;inFile,outFile,seqType,assignType)
     # save in dict
     frame_dict = Dict{String,Int64}()
     # total_mapped_counts = 0
@@ -256,9 +263,16 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType)
             stop_codon_pos = parse(Int,split(refname,"|")[5])
             transid = parse(Int,split(refname,"|")[3])
 
-            # relative distance
-            rel2st = exact_pos - start_codon_pos
-            rel2sp = exact_pos - (stop_codon_pos + 1)
+            # check assign type
+            if assignType == "end5"
+                # relative distance
+                rel2st = exact_pos - start_codon_pos
+                rel2sp = exact_pos - (stop_codon_pos + 1)
+            else
+                # relative distance
+                rel2st = exact_pos + read_length - 1 - start_codon_pos
+                rel2sp = exact_pos + read_length - 1 - (stop_codon_pos + 1)
+            end
 
             # assign frame
             frame_st = abs(rel2st)%3
