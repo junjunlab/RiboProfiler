@@ -1,4 +1,4 @@
-globalVariables(c("avergae_exp", "group_name", "mean_exp"))
+globalVariables(c("avergae_exp", "group_name", "mean_exp","framesp","framest"))
 
 #' Metagene Plot Generation
 #'
@@ -19,6 +19,7 @@ globalVariables(c("avergae_exp", "group_name", "mean_exp"))
 #' @param mode Character vector, either "nt" for nucleotide or "codon" for codon resolution in the plot.
 #'        Default is c("nt", "codon") and will be matched in order.
 #' @param collapse Logical, whether to collapse data across samples or not. Default is FALSE.
+#' @param frame Whether add in-frame information for metagene plot. Default is FALSE.
 #' @param geom_line_params List of additional parameters for geom_line, used to customize the line elements
 #'        of the plot. Default is an empty list().
 #' @param facet_wrap_params List of additional parameters for facet_wrap, used to customize the faceting
@@ -28,7 +29,7 @@ globalVariables(c("avergae_exp", "group_name", "mean_exp"))
 #' @import ggplot2
 #' @import dplyr
 #' @import purrr
-#' @importFrom rlang sym
+#' @importFrom rlang sym syms
 #'
 #' @examples
 #' \dontrun{# Assuming `longest_trans_file` and `normed_file` are paths to your data files:
@@ -51,16 +52,27 @@ metagene_plot <- function(longest_trans_file = NULL,
                           type = c("st","sp"),
                           mode = c("nt","codon"),
                           collapse = FALSE,
+                          frame = FALSE,
                           geom_line_params = list(),
                           facet_wrap_params = list()){
   # check args
   mode <- match.arg(mode,c("nt","codon"))
   type <- match.arg(type,c("st","sp"))
 
+  # check whether add frame info
   if(type == "st"){
-    vars_f <- rlang::sym("relst")
+    if(frame == TRUE){
+      vars_f <- rlang::syms(c("relst","framest"))
+    }else{
+      vars_f <- rlang::sym("relst")
+    }
+
   }else{
-    vars_f <- rlang::sym("relsp")
+    if(frame == TRUE){
+      vars_f <- rlang::syms(c("relsp","framesp"))
+    }else{
+      vars_f <- rlang::sym("relsp")
+    }
   }
   # ====================================================================================
   # gene annotation
@@ -95,28 +107,65 @@ metagene_plot <- function(longest_trans_file = NULL,
 
     trans_numbers <- length(unique(tmp$trans_id))
 
-    tmp_1 <- tmp %>%
-      dplyr::group_by(sample,group,!!vars_f) %>%
-      dplyr::summarise(avergae_exp = sum(norm_exp)/trans_numbers) %>%
-      dplyr::filter(!!vars_f >= relative_distance[1] & !!vars_f <= relative_distance[2])
+    if(frame == TRUE){
+      tmp_1 <- tmp %>%
+        dplyr::group_by(sample,group,!!vars_f[[1]],!!vars_f[[2]]) %>%
+        dplyr::summarise(avergae_exp = sum(norm_exp)/trans_numbers) %>%
+        dplyr::filter(!!vars_f[[1]] >= relative_distance[1] & !!vars_f[[1]] <= relative_distance[2])
+
+      # add frame column
+      if(vars_f[[2]] == "framest"){
+        tmp_1 <- tmp_1 %>%
+          dplyr::rename(frame = framest)
+      }else{
+        tmp_1 <- tmp_1 %>%
+          dplyr::rename(frame = framesp)
+      }
+
+    }else{
+      tmp_1 <- tmp %>%
+        dplyr::group_by(sample,group,!!vars_f) %>%
+        dplyr::summarise(avergae_exp = sum(norm_exp)/trans_numbers) %>%
+        dplyr::filter(!!vars_f >= relative_distance[1] & !!vars_f <= relative_distance[2])
+    }
 
     # check mode
     if(mode == "codon"){
-      tmp_codon_positive <- tmp_1 %>%
-        dplyr::filter(!!vars_f >= 0) %>%
-        dplyr::mutate(codon_pos = dplyr::if_else((!!vars_f + 1)%% 3 == 0,(!!vars_f + 1)/ 3,(!!vars_f + 1)%/%3 + 1))
+      if(frame == TRUE){
+        tmp_codon_positive <- tmp_1 %>%
+          dplyr::filter(!!vars_f[[1]] >= 0) %>%
+          dplyr::mutate(codon_pos = dplyr::if_else((!!vars_f[[1]] + 1)%% 3 == 0,(!!vars_f[[1]] + 1)/ 3,(!!vars_f[[1]] + 1)%/%3 + 1))
 
-      tmp_codon_negtive <- tmp_1 %>%
-        dplyr::filter(!!vars_f < 0) %>%
-        dplyr::mutate(codon_pos = dplyr::if_else(!!vars_f%% 3 == 0,!!vars_f/3,!!vars_f%/%3 - 1))
+        tmp_codon_negtive <- tmp_1 %>%
+          dplyr::filter(!!vars_f[[1]] < 0) %>%
+          dplyr::mutate(codon_pos = dplyr::if_else(!!vars_f[[1]]%% 3 == 0,!!vars_f[[1]]/3,!!vars_f[[1]]%/%3 - 1))
 
-      cb_df <- rbind(tmp_codon_positive,tmp_codon_negtive) %>%
-        dplyr::group_by(sample,group,codon_pos) %>%
-        dplyr::summarise(avergae_exp = sum(avergae_exp)) %>%
-        dplyr::mutate(pos = codon_pos)
+        cb_df <- rbind(tmp_codon_positive,tmp_codon_negtive) %>%
+          dplyr::group_by(sample,group,codon_pos,frame) %>%
+          dplyr::summarise(avergae_exp = sum(avergae_exp)) %>%
+          dplyr::mutate(pos = codon_pos)
+      }else{
+        tmp_codon_positive <- tmp_1 %>%
+          dplyr::filter(!!vars_f >= 0) %>%
+          dplyr::mutate(codon_pos = dplyr::if_else((!!vars_f + 1)%% 3 == 0,(!!vars_f + 1)/ 3,(!!vars_f + 1)%/%3 + 1))
+
+        tmp_codon_negtive <- tmp_1 %>%
+          dplyr::filter(!!vars_f < 0) %>%
+          dplyr::mutate(codon_pos = dplyr::if_else(!!vars_f%% 3 == 0,!!vars_f/3,!!vars_f%/%3 - 1))
+
+        cb_df <- rbind(tmp_codon_positive,tmp_codon_negtive) %>%
+          dplyr::group_by(sample,group,codon_pos) %>%
+          dplyr::summarise(avergae_exp = sum(avergae_exp)) %>%
+          dplyr::mutate(pos = codon_pos)
+      }
     }else{
-      cb_df <- tmp_1 %>%
-        dplyr::mutate(pos = !!vars_f)
+      if(frame == TRUE){
+        cb_df <- tmp_1 %>%
+          dplyr::mutate(pos = !!vars_f[[1]])
+      }else{
+        cb_df <- tmp_1 %>%
+          dplyr::mutate(pos = !!vars_f)
+      }
     }
 
     # normalize
@@ -170,9 +219,16 @@ metagene_plot <- function(longest_trans_file = NULL,
                                                    facet_wrap_params))
 
       # line_layer <- geom_line(aes(x = pos,y = mean_exp))
-      line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
-                                                      linewidth = linewidth),
-                                                 geom_line_params))
+      if(frame == TRUE){
+        line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp,
+                                                                      color = factor(frame)),
+                                                        linewidth = linewidth),
+                                                   geom_line_params))
+      }else{
+        line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
+                                                        linewidth = linewidth),
+                                                   geom_line_params))
+      }
     }
 
   }

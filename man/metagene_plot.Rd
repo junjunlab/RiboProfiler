@@ -13,6 +13,7 @@ metagene_plot(
   type = c("st", "sp"),
   mode = c("nt", "codon"),
   collapse = FALSE,
+  frame = FALSE,
   geom_line_params = list(),
   facet_wrap_params = list()
 )
@@ -38,6 +39,8 @@ reference point for relative distances. Default is c("st", "sp") and will be mat
 Default is c("nt", "codon") and will be matched in order.}
 
 \item{collapse}{Logical, whether to collapse data across samples or not. Default is FALSE.}
+
+\item{frame}{Whether add in-frame information for metagene plot. Default is FALSE.}
 
 \item{geom_line_params}{List of additional parameters for geom_line, used to customize the line elements
 of the plot. Default is an empty list().}
