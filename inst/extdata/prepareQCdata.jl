@@ -190,7 +190,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
     inFile = [s for s in split(inFile,",")]
     outFile = [o for o in split(outFile,",")]
     for i in range(1,length(inFile))
-        RiboQcAnalysis(inFile[i],outFile[i],seq_type = seqType)
+        RiboQcAnalysis(inFile[i],outFile[i],seq_type = seqType,assignType = assignType)
         tmp_name = inFile[i]
         display("$tmp_name has been processed.")
     end

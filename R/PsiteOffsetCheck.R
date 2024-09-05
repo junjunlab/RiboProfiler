@@ -59,6 +59,8 @@ PsiteOffsetCheck <- function(qc_data = NULL,
   p <-
     ggplot(df_ft) +
     geom_line(aes(x = relst,y = count),linewidth = 0.75,color = line_col) +
+    geom_vline(xintercept = 0,
+               lty = "dashed",color = peak_line_col,linewidth = 0.75) +
     geom_vline(data = df_maxht,
                aes(xintercept = relst),
                lty = "dashed",color = peak_line_col,linewidth = 0.75) +
@@ -72,7 +74,8 @@ PsiteOffsetCheck <- function(qc_data = NULL,
           axis.text = element_text(colour = "black"),
           panel.grid = element_blank(),
           strip.text = element_text(face = "bold.italic",size = rel(1))) +
-    facet_grid(length~sample,scales = "free_y") +
+    # facet_grid(length~sample,scales = "free_y") +
+    ggh4x::facet_grid2(length~sample,scales = "free",independent = "y") +
     ylab("Read counts") +
     xlab("Distance of 5'end to start codon (nt)")
 

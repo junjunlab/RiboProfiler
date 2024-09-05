@@ -94,7 +94,7 @@ pre_longest_trans_info <- function(gtf_file = NULL,
 #' @param out_file A character vector specifying the paths to the output QC result
 #' files.
 #' @param seq_type The sequencing type for fastq files, "singleEnd" or "pairedEnd".
-#' @param assignType The reads assignment type, 5'end or 3'end. Default 5'end.
+#' @param assignType The reads assignment type, 5'end or 3'end, choices c("end5","end3"). Default 5'end.
 #'
 #' @return The function does not return a value, but outputs QC results in text
 #' files.
