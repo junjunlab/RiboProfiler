@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 
-Integrating Ribo-SEQ upstream and downstream analysis process from raw fastq data into ribosome density or count matrix data. Making Ribo-SEQ analysis
+A comprehensive package for analysis of ribosome profilling data. Integrating Ribo-SEQ upstream and downstream analysis process from raw fastq data into ribosome density data. Making Ribo-SEQ analysis
 workflow more easier and concise for R users. Also supporting multiple kinds of visualization with Ribo quality checking and density tracks.
 
 <!-- badges: end -->
