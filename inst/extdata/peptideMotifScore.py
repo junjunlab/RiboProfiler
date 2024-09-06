@@ -65,7 +65,7 @@ def peptideMotifScore(amino_file,codon_exp_file,output_file,occurrence_threshold
             tripeptide_filtered[key] = [val[0],val[1]]
             
     ###########################################################################################
-    # 3_filter motif occurrence
+    # 4_output
     ###########################################################################################
     total_motifs = 0
     for key,val in tripeptide_filtered.items():
