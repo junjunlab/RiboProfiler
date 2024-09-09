@@ -1,12 +1,16 @@
 from pyfaidx import Fasta
 from Bio.Seq import Seq
 
-def fetchSequneceFromGeneAnno(gene_file,genome_file,output_file,type = "cds",coding_type = "NT",table = 1):
+def fetchSequneceFromGeneAnno(gene_file,genome_file,output_file,type = "cds",coding_type = "NT",table = 1,exclude_stop = "yes"):
     genome = Fasta(genome_file)
 
     seq_Dict = {}
     aa_Dict = {}
    
+    if exclude_stop == "yes":
+        to_stop = True
+    else:
+        to_stop = False
     ######################################################################################################                
     # extract sequence
     ######################################################################################################
@@ -52,7 +56,7 @@ def fetchSequneceFromGeneAnno(gene_file,genome_file,output_file,type = "cds",cod
                     # check length whether can be divided with 3
                     if len(seq_Dict[key]) % 3 == 0:
                         seq_coding = Seq(seq_Dict[key])
-                        aa_seq = str(seq_coding.translate(table = int(table),to_stop = True))
+                        aa_seq = str(seq_coding.translate(table = int(table),to_stop = to_stop))
                         aa_Dict["".join([">",tid," ",str(len(aa_seq))])] = aa_seq
     
     ######################################################################################################                

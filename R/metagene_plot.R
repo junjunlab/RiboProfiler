@@ -192,15 +192,26 @@ metagene_plot <- function(longest_trans_file = NULL,
   if(condition){
     df_plot <- df_final %>%
       dplyr::group_by(group,pos,mean_exp) %>%
-      dplyr::summarise(mean_exp = mean(mean_exp))
-
-    facet_layer <- do.call(facet_wrap,modifyList(list(facets = vars(group)),
-                                                 facet_wrap_params))
+      dplyr::summarise(mean_exp = mean(mean_exp)) %>%
+      dplyr::mutate(group_name = "Metagene analysis")
 
     # line_layer <- geom_line(aes(x = pos,y = mean_exp))
-    line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
-                                                    linewidth = linewidth),
-                                               geom_line_params))
+    if(collapse == TRUE){
+      line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp,color = group),
+                                                      linewidth = linewidth),
+                                                 geom_line_params))
+
+      facet_layer <- do.call(facet_wrap,modifyList(list(facets = vars(group_name)),
+                                                   facet_wrap_params))
+    }else{
+      line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
+                                                      linewidth = linewidth),
+                                                 geom_line_params))
+
+      facet_layer <- do.call(facet_wrap,modifyList(list(facets = vars(group)),
+                                                   facet_wrap_params))
+    }
+
   }else{
     df_plot <- df_final %>%
       dplyr::mutate(group_name = "Metagene analysis")

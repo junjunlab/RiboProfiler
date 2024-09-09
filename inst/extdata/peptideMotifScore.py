@@ -37,9 +37,25 @@ def peptideMotifScore(amino_file,codon_exp_file,output_file,occurrence_threshold
             # check transid in AA fasta file (revised code)!
             if trans_id in amino.keys():
                 # 3nt window to fetch tri-peptide motif
-                type1 = amino.fetch(trans_id,(int(codon_pos) - 1,int(codon_pos) + 1))
-                type2 = amino.fetch(trans_id,(int(codon_pos) - 2,int(codon_pos)))
-                type3 = amino.fetch(trans_id,(int(codon_pos),int(codon_pos) + 2))
+                
+                # type1 = amino.fetch(trans_id,(int(codon_pos) - 1,int(codon_pos) + 1))
+                # type2 = amino.fetch(trans_id,(int(codon_pos) - 2,int(codon_pos)))
+                # type3 = amino.fetch(trans_id,(int(codon_pos),int(codon_pos) + 2))
+                
+                try:
+                    type1 = amino.fetch(trans_id,(int(codon_pos) - 1,int(codon_pos) + 1))
+                except Exception as e:
+                    continue
+                    
+                try:
+                    type2 = amino.fetch(trans_id,(int(codon_pos) - 2,int(codon_pos)))
+                except Exception as e:
+                    continue
+                
+                try:
+                    type3 = amino.fetch(trans_id,(int(codon_pos),int(codon_pos) + 2))
+                except Exception as e:
+                    continue
                 
                 tripeptide_motif_list = [type1, type2, type3]
                 

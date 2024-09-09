@@ -44,12 +44,25 @@ PsiteOffsetCheck <- function(qc_data = NULL,
                      multiple = "all") |>
     dplyr::filter(maxpos == count)
 
+  # retain only one offset
+  purrr::map_df(unique(df_maxht$sample),function(x){
+    tmp <- subset(df_maxht,sample == x)
+    len <- unique(tmp$length)
+    purrr::map_df(seq_along(len),function(x){
+      tmp2 <- subset(tmp,length == len[x]) %>%
+        dplyr::arrange(relst) %>%
+        head(n = 1)
+      return(tmp2)
+    }) -> uniq_offset
+    return(uniq_offset)
+  }) ->df_maxht
+
   # summarise offsets
   summary_offset <-
     plyr::ddply(df_maxht[,c("sample","length","relst")],
                 plyr::.(sample), mutate,
-                readLengths = paste(length, collapse = ", "),
-                Offsets = paste(relst, collapse = ", ")) |>
+                readLengths = paste(length, collapse = ","),
+                Offsets = paste(relst, collapse = ",")) |>
     dplyr::select(-length,-relst)|> unique() |>
     dplyr::mutate(bamFiles = sample,bamLegends = sample)
 

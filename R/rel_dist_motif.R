@@ -150,7 +150,7 @@ rel_dist_motif_plot <- function(motif_occupancy_file = NULL,
     rel_motif$sample <- sample_name[x]
 
     if(!is.null(group_name)){
-      tmp$group <- group_name[x]
+      rel_motif$group <- group_name[x]
     }
 
     return(rel_motif)
@@ -160,7 +160,7 @@ rel_dist_motif_plot <- function(motif_occupancy_file = NULL,
   # deal with replicates
   if(!is.null(group_name)){
     df_plot <- motif_df %>%
-      dplyr::group_by(group) %>%
+      dplyr::group_by(group,pos) %>%
       dplyr::summarise(density = mean(density)) %>%
       dplyr::rename(sample = group)
   }else{
@@ -169,7 +169,7 @@ rel_dist_motif_plot <- function(motif_occupancy_file = NULL,
 
   # ============================================================================
   # plot
-  ggplot(motif_df,aes(x = pos,y = density,color = sample)) +
+  ggplot(df_plot,aes(x = pos,y = density,color = sample)) +
     geom_line(linewidth = 0.5) +
     theme_bw() +
     theme(panel.grid = element_blank(),

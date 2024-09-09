@@ -17,7 +17,8 @@ triAmino_scater_plot(
 
 \item{sample_name}{A vector of sample names corresponding to each occupancy file.}
 
-\item{group_name}{An optional vector of group names for each sample.}
+\item{group_name}{An optional vector of group names for each sample, it is useful
+to deal with replicates by using mean method.}
 
 \item{mark_motif}{A vector of motifs to highlight in the plot.}
 

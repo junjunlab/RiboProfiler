@@ -9,6 +9,8 @@
 #' @param table Translation table, for which you can give an
 #' NCBI genetic code number or name(https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi),
 #' default 1.
+#' @param exclude_stop Whether stop to extract amino acid when encounter stop codon.
+#' c("yes","no"), default "yes".
 #'
 #' @return None.
 #'
@@ -19,10 +21,12 @@ FetchSequence <- function(gene_file = NULL,
                           type = c("cds","exon"),
                           coding_type = c("NT","AA"),
                           pythonPath = NULL,
-                          table = 1){
+                          table = 1,
+                          exclude_stop = c("yes","no")){
   # check args
   type <- match.arg(type,c("cds","exon"))
   coding_type <- match.arg(coding_type,c("NT","AA"))
+  exclude_stop <- match.arg(exclude_stop,c("yes","no"))
 
   # ============================================================================
   # run
@@ -52,7 +56,8 @@ FetchSequence <- function(gene_file = NULL,
                                                output_file = output_file,
                                                type = type,
                                                coding_type = coding_type,
-                                               table = table)
+                                               table = table,
+                                               exclude_stop = exclude_stop)
     )
   }
 }

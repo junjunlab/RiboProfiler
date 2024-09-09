@@ -11,7 +11,8 @@ FetchSequence(
   type = c("cds", "exon"),
   coding_type = c("NT", "AA"),
   pythonPath = NULL,
-  table = 1
+  table = 1,
+  exclude_stop = c("yes", "no")
 )
 }
 \arguments{
@@ -30,6 +31,9 @@ FetchSequence(
 \item{table}{Translation table, for which you can give an
 NCBI genetic code number or name(https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi),
 default 1.}
+
+\item{exclude_stop}{Whether stop to extract amino acid when encounter stop codon.
+c("yes","no"), default "yes".}
 }
 \value{
 None.

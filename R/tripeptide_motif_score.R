@@ -71,7 +71,8 @@ peptide_motif_score <- function(amino_file = NULL,
 #'
 #' @param occupancy_file A vector of file paths to tripeptide occupancy score files.
 #' @param sample_name A vector of sample names corresponding to each occupancy file.
-#' @param group_name An optional vector of group names for each sample.
+#' @param group_name An optional vector of group names for each sample, it is useful
+#' to deal with replicates by using mean method.
 #' @param mark_motif A vector of motifs to highlight in the plot.
 #' @param mark_color The color to use for highlighted motifs. Default is "orange".
 #'
@@ -115,8 +116,8 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
   # get mean score for different groups
   if(!is.null(group_name)){
     var <- group_name
-    df_plot <- df_plot %>%
-      dplyr::group_by(group) %>%
+    df_plot_wide <- df_plot %>%
+      dplyr::group_by(group,motif) %>%
       dplyr::summarise(score = mean(score)) %>%
       tidyr::spread(group,score) %>%
       na.omit()
@@ -135,7 +136,7 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
                color = "grey") +
     geom_abline(slope = 1,lty = "dashed",linewidth = 0.75) +
     ggrepel::geom_text_repel(data = mark,
-                             aes(x = .data[["WT"]],y = .data[["eIF5Ad"]],
+                             aes(x = .data[[var[1]]],y = .data[[var[2]]],
                                  label = motif),
                              color = mark_color,
                              max.overlaps = Inf,
@@ -203,7 +204,7 @@ triAmino_motif_plot <- function(occupancy_file = NULL,
   # get mean score for different groups
   if(!is.null(group_name)){
     var <- group_name
-    df_plot <- df_plot %>%
+    df_plot_wide <- df_plot %>%
       dplyr::group_by(group) %>%
       dplyr::summarise(score = mean(score)) %>%
       tidyr::spread(group,score) %>%
