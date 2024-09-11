@@ -130,10 +130,12 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                         # relative distance
                         rel2st = transPos - start_codon_pos
                         rel2sp = transPos - stop_codon_pos
+                        transPos_new = transPos
                     else
                         # relative distance
                         rel2st = transPos + read_length - 1 - start_codon_pos
                         rel2sp = transPos + read_length - 1 - stop_codon_pos
+                        transPos_new = transPos + read_length - 1
                     end
 
                     # assign frame
@@ -159,7 +161,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                     end
 
                     # key
-                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos,transid],"\t")
+                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos_new,transid],"\t")
 
                     # init dict and count
                     if !haskey(frame_dict,key)
@@ -268,10 +270,12 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType,assignType)
                 # relative distance
                 rel2st = exact_pos - start_codon_pos
                 rel2sp = exact_pos - (stop_codon_pos + 1)
+                transPos_new = exact_pos
             else
                 # relative distance
                 rel2st = exact_pos + read_length - 1 - start_codon_pos
                 rel2sp = exact_pos + read_length - 1 - (stop_codon_pos + 1)
+                transPos_new = exact_pos + read_length - 1
             end
 
             # assign frame
@@ -297,7 +301,7 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType,assignType)
             end
 
             # key
-            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,align_pos,transid],"\t")
+            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos_new,transid],"\t")
             
             # init dict and count
             if !haskey(frame_dict,key)

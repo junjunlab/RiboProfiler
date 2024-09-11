@@ -1,6 +1,8 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
 import pyfastx
 
-def peptideMotifScore(amino_file,codon_exp_file,output_file,occurrence_threshold = 50):
+def peptideMotifScore(amino_file,codon_exp_file,output_file,occurrence_threshold):
     ###########################################################################################
     # 1_load amino fasta file
     ###########################################################################################
@@ -88,7 +90,8 @@ def peptideMotifScore(amino_file,codon_exp_file,output_file,occurrence_threshold
         total_motifs += val[1]
         
     # output
-    out_file = open(output_file, 'w')
+    out_file = open(output_file, 'w',encoding='utf-8')
     for key,val in tripeptide_filtered.items():
         norm_val = (val[0]/(val[1]/total_motifs))/1000000
-        out_file.write("\t".join([key,str(norm_val)]) + '\n')
+        out_file.write("\t".join([str(key),str(norm_val)]) + '\n')
+    out_file.close()

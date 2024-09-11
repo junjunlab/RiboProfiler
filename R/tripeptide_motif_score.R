@@ -52,7 +52,7 @@ peptide_motif_score <- function(amino_file = NULL,
                                        codon_exp_file = codon_exp_file[x],
                                        output_file = paste("peptide_motif/",sample_name[x],
                                                            "_tripeptide_occupancy.txt",sep = ""),
-                                       occurrence_threshold = occurrence_threshold)
+                                       occurrence_threshold = as.integer(occurrence_threshold))
     )
 
     message(paste(codon_exp_file[x],"has been processed!"))
@@ -103,6 +103,7 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
   purrr::map_df(seq_along(occupancy_file),function(x){
     tmp <- read.delim(occupancy_file[x],header = F)
     colnames(tmp) <- c("motif","score")
+    tmp$score <- as.numeric(tmp$score)
 
     tmp$sample <- sample_name[x]
 

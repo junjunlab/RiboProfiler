@@ -18,7 +18,7 @@ adjust_offset <- function(offset_df = NULL,
   df_offset <- offset_df |>
     tidyr::separate_longer_delim(c(readLengths,Offsets),delim = ",") |>
     dplyr::rename(length = readLengths) |>
-    dplyr::mutate(length = as.numeric(length),
+    dplyr::mutate(length = as.numeric(as.character(length)),
                   Offsets = as.numeric(Offsets))
 
   length_rpf <- unique(df_offset$length)
