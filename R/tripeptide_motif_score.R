@@ -34,7 +34,7 @@ globalVariables(c("motif", "score"))
 peptide_motif_score <- function(amino_file = NULL,
                                 codon_exp_file = NULL,
                                 sample_name = NULL,
-                                occurrence_threshold = 50){
+                                occurrence_threshold = 100){
   # =====================================================================================
   # calculation
   # =====================================================================================
@@ -52,7 +52,8 @@ peptide_motif_score <- function(amino_file = NULL,
                                        codon_exp_file = codon_exp_file[x],
                                        output_file = paste("peptide_motif/",sample_name[x],
                                                            "_tripeptide_occupancy.txt",sep = ""),
-                                       occurrence_threshold = occurrence_threshold)
+                                       occurrence_threshold = as.integer(occurrence_threshold)
+                                       )
     )
 
     message(paste(codon_exp_file[x],"has been processed!"))
@@ -61,6 +62,77 @@ peptide_motif_score <- function(amino_file = NULL,
 }
 
 
+
+
+
+
+#' Peptide Motif Scoring Function
+#'
+#' This function calculates the motif scores for peptides based on provided files.
+#'
+#' @param amino_file A character string specifying the path to the amino acid file.
+#' @param normed_exp_file A character string specifying the path to the normalized expression file.
+#' @param longest_trans_file A character string specifying the path to the longest transcript file.
+#' @param norm_type A character string specifying the normalization type. It can be one of
+#'   "normed_count" (normalized count) or "average_count" (average count).
+#'   Default is "normed_count".
+#' @param window An integer specifying the window size for motif scanning.
+#'   Default is 50.
+#' @param occurrence_threshold An integer specifying the threshold for motif occurrences.
+#'   Default is 100.
+#'
+#' @return The function creates output files with motif scores and prints a message for each processed sample.
+#'
+#' @examples
+#' \dontrun{# Example usage:
+#' peptide_motif_score2(amino_file = "path/to/amino_file.txt",
+#'                      normed_exp_file = "path/to/normed_exp_file.txt",
+#'                      longest_trans_file = "path/to/longest_trans_file.txt")}
+#'
+#' @export
+peptide_motif_score2 <- function(amino_file = NULL,
+                                 normed_exp_file = NULL,
+                                 longest_trans_file = NULL,
+                                 norm_type = c("normed_count","average_count"),
+                                 window = 50,
+                                 occurrence_threshold = 100){
+  norm_type <- match.arg(norm_type,c("normed_count","average_count"))
+  # =====================================================================================
+  # output
+  # =====================================================================================
+  dir.create("normalized_count_data",showWarnings = F)
+
+  # source code
+  pyscript.path = system.file("extdata", "averageMotifPauseScore.py", package = "RiboProfiler")
+  reticulate::source_python(pyscript.path)
+
+  sp <- unique(normed_exp_file$sample)
+  # x = 1
+  purrr::map_df(seq_along(sp),function(x){
+    tmp <- subset(normed_exp_file,sample == sp[x])
+    tmp$counts <- (tmp$counts/sum(tmp$counts))*10^6
+
+    vroom::vroom_write(tmp,col_names = F,
+                       file = paste("normalized_count_data/",sp[x],"_normed.txt",sep = ""))
+
+    # calculation
+    suppressMessages(
+      reticulate::py$averageMotifPauseScore(amino_file = amino_file,
+                                            longest_trans_file = longest_trans_file,
+                                            input_file = paste("normalized_count_data/",sp[x],"_normed.txt",sep = ""),
+                                            output_file = paste("normalized_count_data/",sp[x],
+                                                                "_tripeptide_occupancy.txt",sep = ""),
+                                            norm_type = norm_type,
+                                            window = as.integer(window),
+                                            occurrence_threshold = as.integer(occurrence_threshold)
+      )
+    )
+
+    message(paste(sp[x],"has been processed!"))
+    return(NULL)
+  }) -> tmp_normed
+
+}
 
 
 
@@ -75,6 +147,7 @@ peptide_motif_score <- function(amino_file = NULL,
 #' to deal with replicates by using mean method.
 #' @param mark_motif A vector of motifs to highlight in the plot.
 #' @param mark_color The color to use for highlighted motifs. Default is "orange".
+#' @param pcol The point colors. Default is "grey".
 #'
 #' @return A ggplot object representing the scatter plot of tripeptide occupancy scores.
 #'
@@ -99,10 +172,12 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
                                  sample_name = NULL,
                                  group_name = NULL,
                                  mark_motif = NULL,
+                                 pcol = "grey",
                                  mark_color = "orange"){
   purrr::map_df(seq_along(occupancy_file),function(x){
     tmp <- read.delim(occupancy_file[x],header = F)
     colnames(tmp) <- c("motif","score")
+    tmp$score <- as.numeric(tmp$score)
 
     tmp$sample <- sample_name[x]
 
@@ -115,7 +190,7 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
 
   # get mean score for different groups
   if(!is.null(group_name)){
-    var <- group_name
+    var <- unique(group_name)
     df_plot_wide <- df_plot %>%
       dplyr::group_by(group,motif) %>%
       dplyr::summarise(score = mean(score)) %>%
@@ -133,7 +208,7 @@ triAmino_scater_plot <- function(occupancy_file = NULL,
   # plot
   ggplot(df_plot_wide) +
     geom_point(aes(x = .data[[var[1]]],y = .data[[var[2]]]),
-               color = "grey") +
+               color = pcol) +
     geom_abline(slope = 1,lty = "dashed",linewidth = 0.75) +
     ggrepel::geom_text_repel(data = mark,
                              aes(x = .data[[var[1]]],y = .data[[var[2]]],

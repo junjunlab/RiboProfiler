@@ -8,7 +8,7 @@ peptide_motif_score(
   amino_file = NULL,
   codon_exp_file = NULL,
   sample_name = NULL,
-  occurrence_threshold = 50
+  occurrence_threshold = 100
 )
 }
 \arguments{

@@ -60,7 +60,7 @@ PsiteOffsetCheck <- function(qc_data = NULL,
   # summarise offsets
   summary_offset <-
     plyr::ddply(df_maxht[,c("sample","length","relst")],
-                plyr::.(sample), mutate,
+                plyr::.(sample), dplyr::mutate,
                 readLengths = paste(length, collapse = ","),
                 Offsets = paste(relst, collapse = ",")) |>
     dplyr::select(-length,-relst)|> unique() |>

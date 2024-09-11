@@ -42,7 +42,11 @@ def detectPausingSite(longest_trans_file,normed_file,output_file,min_counts=64,w
             _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,exp = line.split()
             if trans_id in total_exp_retained:
                 if trans_id in trans_id_dict:
-                    trans_id_dict[trans_id].update({int(trans_pos): float(exp)})
+                    # trans_id_dict[trans_id].update({int(trans_pos): float(exp)})
+                    if int(trans_pos) in trans_id_dict[trans_id]:
+                        trans_id_dict[trans_id][int(trans_pos)] += float(exp)
+                    else:
+                        trans_id_dict[trans_id][int(trans_pos)] = float(exp)
                 else:
                     trans_id_dict[trans_id] = {int(trans_pos): float(exp)}
                     

@@ -590,7 +590,7 @@ track_plot <- function(signal_data = NULL,
                                   geom_col_params)) +
       scale_fill_manual(values = signal_col,name = "") +
       xlab("Ribosome Along Transcript (nt)") +
-      ylab("Footprint Occupancy(upper)\n RNA Covergae(bottom)")
+      ylab("Footprint Occupancy")
   }else if(plot_type == "interactome"){
     p <- ggplot() +
       # geom_line(data = signal_data,

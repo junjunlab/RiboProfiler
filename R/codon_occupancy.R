@@ -345,5 +345,7 @@ get_track_df <- function(longest_trans_file = NULL,
     dplyr::left_join(y = gene_selected,by = "trans_id") %>%
     dplyr::select(sample,gene_name,trans_id,trans_pos,norm_exp) %>%
     dplyr::rename(density = norm_exp,transpos = trans_pos) %>%
+    dplyr::group_by(sample,gene_name,trans_id,transpos) %>%
+    dplyr::summarise(density = sum(density)) %>%
     dplyr::mutate(type = "ribo")
 }

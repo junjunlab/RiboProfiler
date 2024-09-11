@@ -27,15 +27,12 @@ def relDistTripeptideMotif(amino_file,longest_trans_file,normed_file,motif,outpu
     ###########################################################################################
     with open(normed_file,'r') as input:
         for line in input:
-            # fileds = line.split()
-            # print(line.split())
             _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,exp = line.split()
             
             if trans_id in gene_info:
                 seq = str(amino[trans_id])
                 
                 # search motif patterns for amino acids
-                # pattern = re.compile("PPP",flags=re.IGNORECASE)
                 pattern = re.compile(motif, flags=re.IGNORECASE)
                 pos_res = pattern.finditer(seq)
                 

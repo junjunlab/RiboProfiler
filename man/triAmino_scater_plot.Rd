@@ -9,6 +9,7 @@ triAmino_scater_plot(
   sample_name = NULL,
   group_name = NULL,
   mark_motif = NULL,
+  pcol = "grey",
   mark_color = "orange"
 )
 }
@@ -21,6 +22,8 @@ triAmino_scater_plot(
 to deal with replicates by using mean method.}
 
 \item{mark_motif}{A vector of motifs to highlight in the plot.}
+
+\item{pcol}{The point colors. Default is "grey".}
 
 \item{mark_color}{The color to use for highlighted motifs. Default is "orange".}
 }
