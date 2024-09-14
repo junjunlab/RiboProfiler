@@ -133,6 +133,93 @@ calculatePolarity <- function(gene_anno_file = NULL,
 
 
 
+
+#' Calculate Polarity Scores
+#'
+#' This function calculates polarity scores for gene expression data, filtered by CDS length.
+#'
+#' @param longest_trans_file Character. Path to a file containing gene annotation data. Default is NULL.
+#' @param normed_file Data frame. Normalized expression data which includes `sample`, `trans_id`, `trans_pos`, and `counts`.
+#' @param minCounts Integer. Minimum number of counts required in the CDS region to include a gene. Default is 64.
+#' @param group Character. A grouping variable for the output. Default is NULL, in which case the group is set to the current sample.
+#'
+#' @return A data frame with calculated polarity scores for each gene.
+#'
+#' @details
+#' The function processes gene expression data by calculating a polarity score for each gene. It filters the data
+#' by CDS length and counts, then computes the score based on the specified parameters.
+#'
+#' @examples
+#' \dontrun{
+#' calculatePolarity2(longest_trans_file = "path/to/annotation.txt", normed_file = expression_data)
+#' }
+#'
+#' @export
+calculatePolarity2 <- function(longest_trans_file = NULL,
+                               normed_file = NULL,
+                               minCounts = 64,
+                               group = NULL){
+  # loop calculate polarity score
+  sp <- unique(normed_file$sample)
+
+  # x = 2
+  purrr::map_df(seq_along(sp),function(x){
+    tmp <- subset(normed_file,sample == sp[x])
+
+    # gene annotation
+    gene_anao <- read.delim(longest_trans_file,header = F)
+    colnames(gene_anao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
+                             "cds_rg","exon_rg","utr5","cds","utr3")
+
+    # filter cds length
+    gene_lenth <- gene_anao %>%
+      dplyr::select(gene_name,trans_id,utr5,cds,utr3)
+
+
+    # filter counts in CDS region
+    total_density <- tmp %>%
+      dplyr::left_join(y = gene_lenth,by = "trans_id") %>%
+      dplyr::filter(trans_pos >= utr5 & trans_pos <= utr5 + cds) %>%
+      dplyr::group_by(trans_id) %>%
+      dplyr::summarise(total_counts = sum(counts),
+                       sum_density = sum(norm_exp)) %>%
+      dplyr::filter(total_counts >= minCounts)
+
+    # ========================================================================================
+    # polarity calculation
+    # ========================================================================================
+    dt <- tmp %>%
+      dplyr::filter(trans_id %in% total_exp$trans_id) %>%
+      dplyr::group_by(trans_id,trans_pos) %>%
+      dplyr::summarise(density = sum(norm_exp)) %>%
+      dplyr::left_join(y = gene_lenth,by = "trans_id") %>%
+      dplyr::rename(pos = trans_pos)
+
+    # calculate wi and pi for each gene
+    if(is.null(group)){
+      group <- sp[x]
+    }
+
+    ps_df <- dt |>
+      dplyr::left_join(y = total_density,by = "trans_id",multiple = "all") |>
+      dplyr::mutate(abs_pos = pos - utr5,
+                    wi = (2*abs_pos -(cds + 1))/(cds - 1),
+                    pi = density*wi/sum_density) |>
+      dplyr::group_by(gene_name) |>
+      dplyr::summarise(sum_pi = sum(pi)) |>
+      dplyr::mutate(group = group,sample = sp[x])
+
+    return(ps_df)
+  }) -> ps
+
+  return(ps)
+}
+
+
+
+
+
+
 #' Plot Polarity Scores
 #'
 #' This function creates a plot of polarity scores for genes based on RNA-seq data.

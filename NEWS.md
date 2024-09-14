@@ -21,3 +21,4 @@ is using PausePred described with a sliding window. More details please refer to
 - Add **peptide_motif_score2** to calculate average pausec score according to 
 **The ubiquitin conjugase Rad6 mediates ribosome pausing during oxidative stress** reference.
 - Add **show_cds_region_only** paramters for **track_plot**.
+- Add **calculatePolarity2** to calculate polarity score for nomalized data.
