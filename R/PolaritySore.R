@@ -189,7 +189,7 @@ calculatePolarity2 <- function(longest_trans_file = NULL,
     # polarity calculation
     # ========================================================================================
     dt <- tmp %>%
-      dplyr::filter(trans_id %in% total_exp$trans_id) %>%
+      dplyr::filter(trans_id %in% total_density$trans_id) %>%
       dplyr::group_by(trans_id,trans_pos) %>%
       dplyr::summarise(density = sum(norm_exp)) %>%
       dplyr::left_join(y = gene_lenth,by = "trans_id") %>%
