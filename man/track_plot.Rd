@@ -9,6 +9,7 @@ track_plot(
   gene_anno = NULL,
   plot_type = c("translatome", "interactome"),
   add_gene_struc = TRUE,
+  show_cds_region_only = FALSE,
   structure_label_y = -3,
   structure_label_size = 2.5,
   structure_col = NULL,
@@ -44,6 +45,8 @@ track_plot(
 \item{plot_type}{the plot type for track, "translatome"(default) or "interactome".}
 
 \item{add_gene_struc}{Whether add gene structure plot. Default is TRUE.}
+
+\item{show_cds_region_only}{Whether retain CDS region only. Default is FALSE.}
 
 \item{structure_label_y}{The y position of gene structure, defalut -3.}
 

@@ -3,7 +3,8 @@ globalVariables(c("counts", "dfqc", "feature", "framest", "group", "num",
                   "max_v", "min_v", "remove_chrom_panel_border", "rg_label",
                   "trans_id", "transpos", "type", "ymax", "ymin",".","region",
                   "id","calculateRibosomeDensity","map_type", "reads","end",
-                  "gene_id", "seqnames", "start", "strand", "transcript_id"))
+                  "gene_id", "seqnames", "start", "strand", "transcript_id",
+                  "utr3"))
 
 #' theme setting
 #' Theme for plots
@@ -256,6 +257,7 @@ rel_to_start_stop <- function(qc_data = NULL,
 #' @param gene_anno Longest transcript gene annotation file.
 #' @param plot_type the plot type for track, "translatome"(default) or "interactome".
 #' @param add_gene_struc Whether add gene structure plot. Default is TRUE.
+#' @param show_cds_region_only Whether retain CDS region only. Default is FALSE.
 #' @param structure_col Color of the gene structure rectangles.
 #' @param background_col Color of the plot background. Default is "grey90".
 #' @param range_pos Position of the range labels. Default is c(0.85,0.85).
@@ -307,6 +309,7 @@ track_plot <- function(signal_data = NULL,
                        gene_anno = NULL,
                        plot_type = c("translatome","interactome"),
                        add_gene_struc = TRUE,
+                       show_cds_region_only = FALSE,
                        structure_label_y = -3,
                        structure_label_size = 2.5,
                        structure_col = NULL,
@@ -366,6 +369,24 @@ track_plot <- function(signal_data = NULL,
     }) -> signal_data
   }
 
+  # ==============================================================================
+  # change trans_pos to cds_pos
+  # ==============================================================================
+  if(show_cds_region_only == TRUE){
+    # load geneinfo
+    geneInfo <- read.table(gene_anno)
+    colnames(geneInfo) <- c('id','gene_name','gene_id','trans_id','chr','strand',
+                            'cds_region','exon_region','utr5','cds','utr3')
+    geneInfo <- geneInfo %>%
+      dplyr::filter(gene_name %in% unique(signal_data$gene_name)) %>%
+      dplyr::select(gene_name,utr5,cds,utr3)
+
+    signal_data <- signal_data %>%
+      dplyr::left_join(y = geneInfo,by = "gene_name") %>%
+      dplyr::mutate(transpos = transpos - utr5) %>%
+      dplyr::filter(transpos > 0 & transpos <= cds)
+  }
+
   # ============================================================================
   # sample or gene orders
   # ============================================================================
@@ -387,6 +408,7 @@ track_plot <- function(signal_data = NULL,
     signal_data$sample <- factor(signal_data$sample,
                                  levels = sample_order)
   }
+
 
   # ==============================================================================
   # gene strctures
@@ -422,14 +444,26 @@ track_plot <- function(signal_data = NULL,
     # x = 1
     structure_df <- plyr::ldply(1:nrow(geneInfo), function(x){
       tmp <- geneInfo[x,]
-      df <- data.frame(gene_name = tmp$gene_name,
-                       start = c(0,tmp$utr5,tmp$utr5 + tmp$cds),
-                       end = c(tmp$utr5,tmp$utr5 + tmp$cds,tmp$utr5 + tmp$cds + tmp$utr3),
-                       ymin = c(-0.5,-1,-0.5),
-                       ymax = c(0.5,1,0.5),
-                       sample = "trans",
-                       region = c("5UTR","CDS","3UTR"),
-                       group = NA)
+
+      if(show_cds_region_only == TRUE){
+        df <- data.frame(gene_name = tmp$gene_name,
+                         start = 1,
+                         end = tmp$cds,
+                         ymin = -1,
+                         ymax = 1,
+                         sample = "trans",
+                         region = "CDS",
+                         group = NA)
+      }else{
+        df <- data.frame(gene_name = tmp$gene_name,
+                         start = c(0,tmp$utr5,tmp$utr5 + tmp$cds),
+                         end = c(tmp$utr5,tmp$utr5 + tmp$cds,tmp$utr5 + tmp$cds + tmp$utr3),
+                         ymin = c(-0.5,-1,-0.5),
+                         ymax = c(0.5,1,0.5),
+                         sample = "trans",
+                         region = c("5UTR","CDS","3UTR"),
+                         group = NA)
+      }
 
       return(df)
     })
