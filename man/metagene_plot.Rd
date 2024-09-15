@@ -14,6 +14,7 @@ metagene_plot(
   mode = c("nt", "codon"),
   collapse = FALSE,
   frame = FALSE,
+  frame_col = FALSE,
   geom_line_params = list(),
   facet_wrap_params = list()
 )
@@ -41,6 +42,8 @@ Default is c("nt", "codon") and will be matched in order.}
 \item{collapse}{Logical, whether to collapse data across samples or not. Default is FALSE.}
 
 \item{frame}{Whether add in-frame information for metagene plot. Default is FALSE.}
+
+\item{frame_col}{Whether show geom_col instead of geom_line. Default is FALSE.}
 
 \item{geom_line_params}{List of additional parameters for geom_line, used to customize the line elements
 of the plot. Default is an empty list().}

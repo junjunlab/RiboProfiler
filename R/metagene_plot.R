@@ -20,6 +20,7 @@ globalVariables(c("avergae_exp", "group_name", "mean_exp","framesp","framest"))
 #'        Default is c("nt", "codon") and will be matched in order.
 #' @param collapse Logical, whether to collapse data across samples or not. Default is FALSE.
 #' @param frame Whether add in-frame information for metagene plot. Default is FALSE.
+#' @param frame_col Whether show geom_col instead of geom_line. Default is FALSE.
 #' @param geom_line_params List of additional parameters for geom_line, used to customize the line elements
 #'        of the plot. Default is an empty list().
 #' @param facet_wrap_params List of additional parameters for facet_wrap, used to customize the faceting
@@ -53,6 +54,7 @@ metagene_plot <- function(longest_trans_file = NULL,
                           mode = c("nt","codon"),
                           collapse = FALSE,
                           frame = FALSE,
+                          frame_col = FALSE,
                           geom_line_params = list(),
                           facet_wrap_params = list()){
   # check args
@@ -204,9 +206,18 @@ metagene_plot <- function(longest_trans_file = NULL,
       facet_layer <- do.call(facet_wrap,modifyList(list(facets = vars(group_name)),
                                                    facet_wrap_params))
     }else{
-      line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
-                                                      linewidth = linewidth),
-                                                 geom_line_params))
+      if(frame_col == TRUE){
+        line_layer <- do.call(geom_col,modifyList(list(mapping = aes(x = pos,y = mean_exp,
+                                                                     fill = factor(frame)),
+                                                       width = 0.5,
+                                                       position = position_dodge2()),
+                                                  geom_line_params))
+      }else{
+        line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
+                                                        linewidth = linewidth),
+                                                   geom_line_params))
+      }
+
 
       facet_layer <- do.call(facet_wrap,modifyList(list(facets = vars(group)),
                                                    facet_wrap_params))
@@ -231,10 +242,18 @@ metagene_plot <- function(longest_trans_file = NULL,
 
       # line_layer <- geom_line(aes(x = pos,y = mean_exp))
       if(frame == TRUE){
-        line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp,
-                                                                      color = factor(frame)),
-                                                        linewidth = linewidth),
-                                                   geom_line_params))
+        if(frame_col == TRUE){
+          line_layer <- do.call(geom_col,modifyList(list(mapping = aes(x = pos,y = mean_exp,
+                                                                       fill = factor(frame)),
+                                                         width = 0.5,
+                                                         position = position_dodge2()),
+                                                    geom_line_params))
+        }else{
+          line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp,
+                                                                        color = factor(frame)),
+                                                          linewidth = linewidth),
+                                                     geom_line_params))
+        }
       }else{
         line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
                                                         linewidth = linewidth),
