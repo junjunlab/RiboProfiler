@@ -84,7 +84,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                 # end
 
                 # read flag tag
-                flag = BAM.flags(record)
+                flag = BAM.flag(record)
                 # if flag == 16 || flag == 0
                 #     total_mapped_counts += 1
                 # end
@@ -223,7 +223,7 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType,assignType)
             refname = BAM.refname(record)
             align_pos = BAM.position(record)
             read_length = BAM.seqlength(record)
-            flag = BAM.flags(record)
+            flag = BAM.flag(record)
 
             # if flag == 16 || flag == 0
             #     total_mapped_counts += 1
