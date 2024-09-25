@@ -2,28 +2,40 @@
 % Please edit documentation in R/get_nomalized_counts.R
 \name{get_nomalized_counts}
 \alias{get_nomalized_counts}
+\alias{get_nomalized_counts,ribosomeObj-method}
 \title{Get Normalized Counts for Transcript Positions}
 \usage{
 get_nomalized_counts(
-  longest_trans_file = NULL,
-  qc_df = NULL,
-  exclude_upstreamCodon = 30,
-  exclude_downstreamCodon = 0
+  object,
+  exclude_upstreamCodon = 5,
+  exclude_downstreamCodon = 5,
+  norm_type = c("average", "rpm"),
+  ...
+)
+
+\S4method{get_nomalized_counts}{ribosomeObj}(
+  object,
+  exclude_upstreamCodon = 5,
+  exclude_downstreamCodon = 5,
+  norm_type = c("average", "rpm"),
+  ...
 )
 }
 \arguments{
-\item{longest_trans_file}{A string specifying the path to the file containing the longest transcript information.
-This file should contain columns for transcript ID, gene name, gene ID, chromosome, strand,
-CDS range, exon range, 5' UTR length, CDS length, and 3' UTR length.}
-
-\item{qc_df}{A data frame containing quality control data, including columns for sample, transcript ID,
-transcript position, and counts.}
+\item{object}{ribosomeObj object.}
 
 \item{exclude_upstreamCodon}{An integer specifying the number of codons to exclude from the start of the coding sequence.
-Default is 30.}
+Default is 5}
 
 \item{exclude_downstreamCodon}{An integer specifying the number of codons to exclude from the end of the coding sequence.
-Default is 0.}
+Default is 5.}
+
+\item{norm_type}{The nomalization methods for ribosome density. "average" is calculated by
+the count at each position divided by mean density across cds region. "rpm"
+is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+Default is "average".}
+
+\item{...}{Useless args.}
 }
 \value{
 A data frame with normalized counts for each position in each transcript across all samples.

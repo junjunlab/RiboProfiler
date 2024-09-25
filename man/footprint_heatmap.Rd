@@ -2,10 +2,11 @@
 % Please edit documentation in R/footprint_heatmap.R
 \name{footprint_heatmap}
 \alias{footprint_heatmap}
+\alias{footprint_heatmap,ribosomeObj-method}
 \title{Create a footprint heatmap}
 \usage{
 footprint_heatmap(
-  qc_data = NULL,
+  object,
   type = c("relst", "relsp"),
   rel_distance = NULL,
   read_length = c(20, 35),
@@ -17,11 +18,29 @@ footprint_heatmap(
   xseq = 3,
   xline = FALSE,
   xline_col = "black",
-  log = FALSE
+  log = FALSE,
+  ...
+)
+
+\S4method{footprint_heatmap}{ribosomeObj}(
+  object,
+  type = c("relst", "relsp"),
+  rel_distance = NULL,
+  read_length = c(20, 35),
+  tile_border = "grey",
+  bar_col = "grey",
+  bar_width = 0.75,
+  scale_x = 0.1,
+  scale_y = 0.1,
+  xseq = 3,
+  xline = FALSE,
+  xline_col = "black",
+  log = FALSE,
+  ...
 )
 }
 \arguments{
-\item{qc_data}{A data frame containing the quality control data.}
+\item{object}{ribosomeObj object.}
 
 \item{type}{A character string specifying the type of distance to use.
 It can be either 'relst' or 'relsp'. Default is 'relst'.}
@@ -52,6 +71,8 @@ Default is "grey".}
 Default is 0.75.}
 
 \item{log}{Whether do log transformation for counts. Default is FALSE.}
+
+\item{...}{Useless args.}
 }
 \value{
 A ggplot2 object representing the footprint heatmap.

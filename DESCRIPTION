@@ -1,6 +1,6 @@
 Package: RiboProfiler
 Title: Ribo-seq Data Analysis and Visualization
-Version: 0.1.2
+Version: 0.2.0
 Author: Jun Zhang
 Maintainer: Jun Zhang <3219030654@stu.cpu.edu.cn>
 Description: Integrating Ribo-SEQ upstream and downstream analysis process from 
@@ -38,17 +38,22 @@ Imports:
     rlang,
     rtracklayer,
     scales,
-    stringr,
-    Rsubread,
     utils,
     vroom,
     zplyr,
     tidyr,
     ggrepel,
-    ggseqlogo
+    ggseqlogo,
+    stringr,
+    aplot,
+    RiboSeqTools,
+    stats,
+    Matrix,
+    tibble
 Remotes:
   burchill/zplyr,
-  jtlandis/ggside
+  jtlandis/ggside,
+  ilia-kats/RiboSeqTools
 biocViews: Rfastp,Rhisat2,Biostrings,rtracklayer,GenomicAlignments,IRanges,Rsamtools,Rsubread
 Suggests: 
     Rhisat2,

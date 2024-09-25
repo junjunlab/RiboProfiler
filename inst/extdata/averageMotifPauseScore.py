@@ -30,7 +30,7 @@ def averageMotifPauseScore(amino_file,longest_trans_file,input_file,output_file,
             cds_pos = int(trans_pos) - utr5
             
             if cds_pos >= 1 and cds_pos <= cds:
-                if norm_type == "normed_count":
+                if norm_type == "rpm":
                     exp_whole_trans[trans_id][(cds_pos - 1)] = float(counts)
                 else:
                     exp_whole_trans[trans_id][(cds_pos - 1)] = float(exp)

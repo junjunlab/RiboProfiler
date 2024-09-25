@@ -2,23 +2,35 @@
 % Please edit documentation in R/tripeptide_motif_score.R
 \name{peptide_motif_score}
 \alias{peptide_motif_score}
+\alias{peptide_motif_score,ribosomeObj-method}
 \title{Calculate Peptide Motif Scores}
 \usage{
 peptide_motif_score(
-  amino_file = NULL,
+  object,
   codon_exp_file = NULL,
   sample_name = NULL,
-  occurrence_threshold = 100
+  occurrence_threshold = 100,
+  ...
+)
+
+\S4method{peptide_motif_score}{ribosomeObj}(
+  object,
+  codon_exp_file = NULL,
+  sample_name = NULL,
+  occurrence_threshold = 100,
+  ...
 )
 }
 \arguments{
-\item{amino_file}{A string specifying the path to the file containing amino acid sequences.}
+\item{object}{ribosomeObj object.}
 
 \item{codon_exp_file}{A vector of file paths to codon expression data files.}
 
 \item{sample_name}{A vector of sample names corresponding to each codon expression file.}
 
-\item{occurrence_threshold}{An integer specifying the minimum occurrence threshold for peptide motifs.
+\item{occurrence_threshold}{An integer specifying the minimum occurrence threshold for peptide motifs.}
+
+\item{...}{Useless args.
 Default is 50.}
 }
 \value{
@@ -40,7 +52,6 @@ This function performs the following steps:
 }
 \examples{
 \dontrun{peptide_motif_score(
-  amino_file = "path/to/amino_sequences.txt",
   codon_exp_file = c("sample1_codon_exp.txt", "sample2_codon_exp.txt"),
   sample_name = c("Sample1", "Sample2"),
   occurrence_threshold = 50

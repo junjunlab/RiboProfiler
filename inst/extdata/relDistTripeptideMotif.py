@@ -71,3 +71,4 @@ def relDistTripeptideMotif(amino_file,longest_trans_file,normed_file,motif,outpu
 
     for key,val in rel_dist_norm.items():
         out_file.write("\t".join([str(key),str(val)]) + '\n')
+    out_file.close()

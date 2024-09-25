@@ -2,26 +2,30 @@
 % Please edit documentation in R/tripeptide_motif_score.R
 \name{peptide_motif_score2}
 \alias{peptide_motif_score2}
+\alias{peptide_motif_score2,ribosomeObj-method}
 \title{Peptide Motif Scoring Function}
 \usage{
 peptide_motif_score2(
-  amino_file = NULL,
-  normed_exp_file = NULL,
-  longest_trans_file = NULL,
-  norm_type = c("normed_count", "average_count"),
+  object,
+  norm_type = c("rpm", "average"),
   window = 50,
-  occurrence_threshold = 100
+  occurrence_threshold = 100,
+  ...
+)
+
+\S4method{peptide_motif_score2}{ribosomeObj}(
+  object,
+  norm_type = c("rpm", "average"),
+  window = 50,
+  occurrence_threshold = 100,
+  ...
 )
 }
 \arguments{
-\item{amino_file}{A character string specifying the path to the amino acid file.}
-
-\item{normed_exp_file}{A character string specifying the path to the normalized expression file.}
-
-\item{longest_trans_file}{A character string specifying the path to the longest transcript file.}
+\item{object}{ribosomeObj object.}
 
 \item{norm_type}{A character string specifying the normalization type. It can be one of
-"normed_count" (normalized count) or "average_count" (average count).
+"rpm" or "average".
 Default is "normed_count".}
 
 \item{window}{An integer specifying the window size for motif scanning.
@@ -29,6 +33,8 @@ Default is 50.}
 
 \item{occurrence_threshold}{An integer specifying the threshold for motif occurrences.
 Default is 100.}
+
+\item{...}{Useless args.}
 }
 \value{
 The function creates output files with motif scores and prints a message for each processed sample.
@@ -38,8 +44,6 @@ This function calculates the motif scores for peptides based on provided files.
 }
 \examples{
 \dontrun{# Example usage:
-peptide_motif_score2(amino_file = "path/to/amino_file.txt",
-                     normed_exp_file = "path/to/normed_exp_file.txt",
-                     longest_trans_file = "path/to/longest_trans_file.txt")}
+peptide_motif_score2(object = ribosomeObj)}
 
 }

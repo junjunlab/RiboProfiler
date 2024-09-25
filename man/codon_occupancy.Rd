@@ -2,35 +2,38 @@
 % Please edit documentation in R/codon_occupancy.R
 \name{codon_occupancy}
 \alias{codon_occupancy}
+\alias{codon_occupancy,ribosomeObj-method}
 \title{Calculate Codon Occupancy}
 \usage{
 codon_occupancy(
-  qc_file = NULL,
-  longest_trans_file = NULL,
+  object,
   min_counts = 32,
-  cds_fasta_file = NULL,
   upstream_codon_exclude = 0,
-  downstream_codon_exclude = 0
+  downstream_codon_exclude = 0,
+  ...
+)
+
+\S4method{codon_occupancy}{ribosomeObj}(
+  object,
+  min_counts = 32,
+  upstream_codon_exclude = 0,
+  downstream_codon_exclude = 0,
+  ...
 )
 }
 \arguments{
-\item{qc_file}{A data frame containing quality control data, including columns for sample, transcript ID,
-transcript position, counts, and normalized expression.}
-
-\item{longest_trans_file}{A string specifying the path to the file containing the longest transcript information.
-This file should contain columns for transcript ID, gene name, gene ID, chromosome, strand,
-CDS range, exon range, 5' UTR length, CDS length, and 3' UTR length.}
+\item{object}{ribosomeObj object.}
 
 \item{min_counts}{An integer specifying the minimum number of counts required for a transcript to be included
 in the analysis. Default is 32.}
-
-\item{cds_fasta_file}{A string specifying the path to the FASTA file containing CDS sequences.}
 
 \item{upstream_codon_exclude}{An integer specifying the number of codons to exclude from the start of the coding sequence.
 Default is 5.}
 
 \item{downstream_codon_exclude}{An integer specifying the number of codons to exclude from the end of the coding sequence.
 Default is 0.}
+
+\item{...}{Useless args.}
 }
 \value{
 This function does not return a value, but creates output files in a 'codon_occupancy' directory:

@@ -84,7 +84,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                 # end
 
                 # read flag tag
-                flag = SAM.flags(record)
+                flag = SAM.flag(record)
 
                 # if flag == 16 || flag == 0
                 #     total_mapped_counts += 1
@@ -224,7 +224,7 @@ function prepareQCdata_ontrans(;inFile,outFile,seqType,assignType)
             refname = SAM.refname(record)
             align_pos = SAM.position(record)
             read_length = SAM.seqlength(record)
-            flag = SAM.flags(record)
+            flag = SAM.flag(record)
 
             # if flag == 16 || flag == 0
             #     total_mapped_counts += 1

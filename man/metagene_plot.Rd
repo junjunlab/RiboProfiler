@@ -2,11 +2,11 @@
 % Please edit documentation in R/metagene_plot.R
 \name{metagene_plot}
 \alias{metagene_plot}
+\alias{metagene_plot,ribosomeObj-method}
 \title{Metagene Plot Generation}
 \usage{
 metagene_plot(
-  longest_trans_file = NULL,
-  normed_file = NULL,
+  object,
   min_counts = 64,
   min_cds_length = 600,
   relative_distance = c(-25, 500),
@@ -15,15 +15,30 @@ metagene_plot(
   collapse = FALSE,
   frame = FALSE,
   frame_col = FALSE,
+  merge_rep = FALSE,
   geom_line_params = list(),
-  facet_wrap_params = list()
+  facet_wrap_params = list(),
+  ...
+)
+
+\S4method{metagene_plot}{ribosomeObj}(
+  object,
+  min_counts = 64,
+  min_cds_length = 600,
+  relative_distance = c(-25, 500),
+  type = c("st", "sp"),
+  mode = c("nt", "codon"),
+  collapse = FALSE,
+  frame = FALSE,
+  frame_col = FALSE,
+  merge_rep = FALSE,
+  geom_line_params = list(),
+  facet_wrap_params = list(),
+  ...
 )
 }
 \arguments{
-\item{longest_trans_file}{A file path to the longest transcript data, containing gene annotations.
-Default is NULL.}
-
-\item{normed_file}{A file path to the normalized gene expression data. Default is NULL.}
+\item{object}{ribosomeObj object.}
 
 \item{min_counts}{The minimum count threshold to include a transcript in the analysis.
 Default is 64.}
@@ -45,11 +60,15 @@ Default is c("nt", "codon") and will be matched in order.}
 
 \item{frame_col}{Whether show geom_col instead of geom_line. Default is FALSE.}
 
+\item{merge_rep}{Whether merge replicates. Default is FALSE.}
+
 \item{geom_line_params}{List of additional parameters for geom_line, used to customize the line elements
 of the plot. Default is an empty list().}
 
 \item{facet_wrap_params}{List of additional parameters for facet_wrap, used to customize the faceting
 of the plot. Default is an empty list().}
+
+\item{...}{Useless args.}
 }
 \value{
 A ggplot object representing the metagene analysis plot.
@@ -62,8 +81,7 @@ to translation start (st) or stop (sp) sites. Data can be plotted at nucleotide 
 \examples{
 \dontrun{# Assuming `longest_trans_file` and `normed_file` are paths to your data files:
 metagene_plot(
-  longest_trans_file = "path/to/longest_transcripts.tsv",
-  normed_file = "path/to/normed_expression.tsv",
+  object = ribosomeObj,
   min_counts = 64,
   min_cds_length = 600,
   relative_distance = c(-25, 500),

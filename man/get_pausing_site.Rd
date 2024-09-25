@@ -2,26 +2,23 @@
 % Please edit documentation in R/get_pausing_site.R
 \name{get_pausing_site}
 \alias{get_pausing_site}
+\alias{get_pausing_site,ribosomeObj-method}
 \title{Detect Pausing Sites}
 \usage{
-get_pausing_site(
-  longest_trans_file = NULL,
-  normed_file = NULL,
-  min_counts = 64,
-  window = 500
-)
+get_pausing_site(object, min_counts = 64, window = 1000, ...)
+
+\S4method{get_pausing_site}{ribosomeObj}(object, min_counts = 64, window = 1000, ...)
 }
 \arguments{
-\item{longest_trans_file}{A character string specifying the file path to the
-longest transcripts file. Default is \code{NULL}.}
-
-\item{normed_file}{A data frame containing normalized expression data. Default is \code{NULL}.}
+\item{object}{ribosomeObj object.}
 
 \item{min_counts}{An integer specifying the minimum counts threshold for
 considering a site as a pausing site. Default is \code{64}.}
 
 \item{window}{An integer specifying the window size for detecting pausing
-sites. Default is \code{500}.}
+sites. Default is \code{1000}.}
+
+\item{...}{Useless args.}
 }
 \value{
 This function does not return a value. It writes output files to the
@@ -36,9 +33,8 @@ the actual detection of pausing sites. This method can be refered to pausepred
 \examples{
 \dontrun{
 # Example usage:
-get_pausing_site(longest_trans_file = "longest_transcripts.txt",
-                normed_file = normed_data_frame,
-                min_counts = 64,
-                window = 500)
+get_pausing_site(object = ribosomeObj,
+                 min_counts = 64,
+                 window = 500)
 }
 }

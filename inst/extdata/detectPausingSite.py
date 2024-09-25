@@ -93,4 +93,5 @@ def detectPausingSite(longest_trans_file,normed_file,output_file,min_counts=64,w
     for key,val in trans_id_sorted.items():
         for pos,pause in val.items():
             out_file.write("\t".join([str(gene_info[key][2]),str(key),str(pos),str(pause[0]),str(pause[1])]) + '\n')
+    out_file.close()
             

@@ -1,22 +1,18 @@
 globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", "cdsft", "codon", "norm_exp",
-                  "readLengths", "total_counts", "trans_pos", "anno", "relsp"))
+                  "readLengths", "total_counts", "trans_pos", "anno", "relsp","..."))
 
 #' Calculate Codon Occupancy
 #'
 #' This function calculates codon occupancy based on ribosome profiling data and transcript information.
 #'
-#' @param qc_file A data frame containing quality control data, including columns for sample, transcript ID,
-#'        transcript position, counts, and normalized expression.
-#' @param longest_trans_file A string specifying the path to the file containing the longest transcript information.
-#'        This file should contain columns for transcript ID, gene name, gene ID, chromosome, strand,
-#'        CDS range, exon range, 5' UTR length, CDS length, and 3' UTR length.
+#' @param object ribosomeObj object.
 #' @param min_counts An integer specifying the minimum number of counts required for a transcript to be included
 #'        in the analysis. Default is 32.
-#' @param cds_fasta_file A string specifying the path to the FASTA file containing CDS sequences.
 #' @param upstream_codon_exclude An integer specifying the number of codons to exclude from the start of the coding sequence.
 #'        Default is 5.
 #' @param downstream_codon_exclude An integer specifying the number of codons to exclude from the end of the coding sequence.
 #'        Default is 0.
+#' @param ... Useless args.
 #'
 #' @details This function performs the following steps:
 #'   1. Filters reads based on minimum count threshold.
@@ -32,80 +28,100 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 #' @importFrom stats na.omit
 #'
 #' @export
-codon_occupancy <- function(qc_file = NULL,
-                            longest_trans_file = NULL,
-                            min_counts = 32,
-                            cds_fasta_file = NULL,
-                            upstream_codon_exclude = 0,
-                            downstream_codon_exclude = 0){
-  # ============================================================================
-  # gene annotation
-  # ============================================================================
-  dir.create("codon_occupancy",showWarnings = FALSE)
+setGeneric("codon_occupancy",
+           function(object,
+                    min_counts = 32,
+                    upstream_codon_exclude = 0,
+                    downstream_codon_exclude = 0, ...) standardGeneric("codon_occupancy"))
 
-  ganao <- read.delim(longest_trans_file,header = F)
-  colnames(ganao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
-                       "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
 
-  # loop for each sample
-  sp <- unique(qc_file$sample)
 
-  # x = 1
-  lapply(seq_along(sp),function(x){
-    # ============================================================================
-    # filter reads by counts
-    # ============================================================================
-    inputfile <- qc_file %>%
-      dplyr::filter(sample == sp[x])
 
-    total_exp <- inputfile %>%
-      dplyr::left_join(y = ganao,by = "trans_id") %>%
-      dplyr::filter(trans_pos >= `5UTR_length` & trans_pos <= `5UTR_length` + CDS_length) %>%
-      dplyr::group_by(trans_id) %>%
-      dplyr::summarise(total_counts = sum(counts)) %>%
-      dplyr::filter(total_counts >= min_counts)
 
-    ganao <- ganao[,c("trans_id","5UTR_length","CDS_length","3UTR_length")] %>%
-      dplyr::filter(trans_id %in% total_exp$trans_id)
+#' method for codon_occupancy
+#'
+#' @rdname codon_occupancy
+#' @exportMethod codon_occupancy
+setMethod("codon_occupancy",
+          signature(object = "ribosomeObj"),
+          function(object,
+                   min_counts = 32,
+                   upstream_codon_exclude = 0,
+                   downstream_codon_exclude = 0,...){
+            # ============================================================================
+            # gene annotation
+            # ============================================================================
+            dir.create("codon_occupancy",showWarnings = FALSE)
 
-    # ============================================================================
-    # get codon density
-    # ============================================================================
+            ganao <- object@longest.annotation
+            colnames(ganao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
+                                 "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
 
-    qc_df_anno <- inputfile %>%
-      dplyr::filter(trans_id %in% total_exp$trans_id) %>%
-      dplyr::left_join(y = ganao,by = "trans_id") %>%
-      dplyr::mutate(cdsft = dplyr::if_else(CDS_length%%3 == 0,1,0)) %>%
-      # filter cds length %%3 == 0
-      dplyr::filter(cdsft == 1) %>%
-      dplyr::mutate(trans_pos = trans_pos - `5UTR_length`) %>%
-      # fiter trans_pos in cds region
-      dplyr::filter(trans_pos > upstream_codon_exclude*3  & trans_pos <= CDS_length - downstream_codon_exclude*3) %>%
-      # transpos trans_pos into codon pos
-      dplyr::mutate(codon_pos = dplyr::if_else(trans_pos%%3 == 0, trans_pos/3,ceiling(trans_pos/3))) %>%
-      dplyr::group_by(trans_id,codon_pos) %>%
-      dplyr::summarise(codon_exp = mean(norm_exp)) %>%
-      na.omit()
+            # loop for each sample
+            normed_file <- object@normalized.data
+            sp <- unique(normed_file$sample)
 
-    # output
-    fname = paste("codon_occupancy/",sp[x],"_codon_pos_exp.txt",sep = "")
-    vroom::vroom_write(x = qc_df_anno,file = fname,col_names = F,quote = "none")
+            # x = 1
+            lapply(seq_along(sp),function(x){
+              # ============================================================================
+              # filter reads by counts
+              # ============================================================================
+              inputfile <- normed_file %>%
+                dplyr::filter(sample == sp[x])
 
-    # ============================================================================
-    # get codon seq and average density
-    # ============================================================================
-    # run code
-    pyscript.path = system.file("extdata", "CodonOccupancy.py", package = "RiboProfiler")
-    reticulate::source_python(pyscript.path)
+              total_exp <- inputfile %>%
+                dplyr::left_join(y = ganao,by = "trans_id") %>%
+                dplyr::filter(trans_pos >= `5UTR_length` & trans_pos <= `5UTR_length` + CDS_length) %>%
+                dplyr::group_by(trans_id) %>%
+                dplyr::summarise(total_counts = sum(counts)) %>%
+                dplyr::filter(total_counts >= min_counts)
 
-    suppressMessages(
-      reticulate::py$codonOccupancy(cds_fasta_file = cds_fasta_file,
-                                    codon_pos_exp_file = fname,
-                                    output_file = paste("codon_occupancy/",sp[x],"_codon_occupancy.txt",sep = ""))
-    )
-  })
+              ganao <- ganao[,c("trans_id","5UTR_length","CDS_length","3UTR_length")] %>%
+                dplyr::filter(trans_id %in% total_exp$trans_id)
 
-}
+              # ============================================================================
+              # get codon density
+              # ============================================================================
+
+              qc_df_anno <- inputfile %>%
+                dplyr::filter(trans_id %in% total_exp$trans_id) %>%
+                dplyr::left_join(y = ganao,by = "trans_id") %>%
+                dplyr::mutate(cdsft = dplyr::if_else(CDS_length%%3 == 0,1,0)) %>%
+                # filter cds length %%3 == 0
+                dplyr::filter(cdsft == 1) %>%
+                dplyr::mutate(trans_pos = trans_pos - `5UTR_length`) %>%
+                # fiter trans_pos in cds region
+                dplyr::filter(trans_pos > upstream_codon_exclude*3  & trans_pos <= CDS_length - downstream_codon_exclude*3) %>%
+                # transpos trans_pos into codon pos
+                dplyr::mutate(codon_pos = dplyr::if_else(trans_pos%%3 == 0, trans_pos/3,trans_pos%/%3 + 1)) %>%
+                dplyr::group_by(trans_id,codon_pos) %>%
+                dplyr::summarise(codon_exp = mean(norm_exp)) %>%
+                na.omit()
+
+              # output
+              fname = paste("codon_occupancy/",sp[x],"_codon_pos_exp.txt",sep = "")
+              vroom::vroom_write(x = qc_df_anno,file = fname,col_names = F,quote = "none")
+
+              # ============================================================================
+              # get codon seq and average density
+              # ============================================================================
+              # run code
+              pyscript.path = system.file("extdata", "CodonOccupancy.py", package = "RiboProfiler")
+              reticulate::source_python(pyscript.path)
+
+              if(length(object@CDS.sequence) != 0){
+                suppressMessages(
+                  reticulate::py$codonOccupancy(cds_fasta_file = object@CDS.sequence,
+                                                codon_pos_exp_file = fname,
+                                                output_file = paste("codon_occupancy/",sp[x],"_codon_occupancy.txt",sep = ""))
+                )
+              }else{
+                message("Please run fetch_sequence first to get cds fasta file!")
+              }
+
+            })
+          }
+)
 
 
 
@@ -300,52 +316,3 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
   }
 }
 
-
-
-
-
-
-
-#' Generate Track Data Frame for Selected Genes
-#'
-#' This function extracts and prepares track data for selected genes from gene annotation and normalized expression files.
-#' It filters gene annotation data for selected genes, merges it with normalized expression data, and formats it for further analysis or visualization.
-#'
-#' @param longest_trans_file A string specifying the file path to the longest transcript data, which includes gene annotations. Expected to be a delimited file without headers. Default is NULL.
-#' @param select_gene A character vector of gene names to filter the gene annotation data. If NULL, no filtering is applied. Default is NULL.
-#' @param normed_file A data frame or a string specifying the file path to the normalized gene expression data, which should include `trans_id` and `norm_exp` columns among others. Default is NULL.
-#'
-#' @return A data frame containing the filtered and transformed data suitable for tracking gene expression. The returned data frame includes columns for sample, gene name, transcript ID, transcript position (transpos), normalized expression (density), and a fixed column (type) set to 'ribo'.
-#'
-#' @importFrom dplyr filter select left_join rename mutate
-#'
-#' @examples
-#' \dontrun{# Assuming `longest_trans_file` and `normed_file` are already defined:
-#' track_df <- get_track_df(
-#'   longest_trans_file = "path/to/longest_transcripts.tsv",
-#'   select_gene = c("Gene1", "Gene2"),
-#'   normed_file = expression_data_frame
-#' )}
-#'
-#' @export
-get_track_df <- function(longest_trans_file = NULL,
-                         select_gene = NULL,
-                         normed_file = NULL){
-  # gene annotation
-  gene_anao <- read.delim(longest_trans_file,header = F)
-  colnames(gene_anao) <- c("id","gene_name","gene_id","trans_id","chrom","strand",
-                           "cds_rg","exon_rg","5UTR_length","CDS_length","3UTR_length")
-
-  gene_selected <- gene_anao %>%
-    dplyr::select(gene_name,trans_id,`5UTR_length`,CDS_length,`3UTR_length`) %>%
-    dplyr::filter(gene_name %in% select_gene)
-
-  track_df <- normed_file %>%
-    dplyr::filter(trans_id %in% gene_selected$trans_id) %>%
-    dplyr::left_join(y = gene_selected,by = "trans_id") %>%
-    dplyr::select(sample,gene_name,trans_id,trans_pos,norm_exp) %>%
-    dplyr::rename(density = norm_exp,transpos = trans_pos) %>%
-    dplyr::group_by(sample,gene_name,trans_id,transpos) %>%
-    dplyr::summarise(density = sum(density)) %>%
-    dplyr::mutate(type = "ribo")
-}

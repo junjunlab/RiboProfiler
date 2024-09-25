@@ -5,10 +5,11 @@ globalVariables(c("motif", "score"))
 #' This function calculates peptide motif scores based on amino acid sequences and codon expression data.
 #' It uses a Python script to perform the calculations and saves the results for each sample.
 #'
-#' @param amino_file A string specifying the path to the file containing amino acid sequences.
+#' @param object ribosomeObj object.
 #' @param codon_exp_file A vector of file paths to codon expression data files.
 #' @param sample_name A vector of sample names corresponding to each codon expression file.
 #' @param occurrence_threshold An integer specifying the minimum occurrence threshold for peptide motifs.
+#' @param ... Useless args.
 #'        Default is 50.
 #'
 #' @return This function does not return a value, but creates output files in a 'peptide_motif' directory.
@@ -16,7 +17,6 @@ globalVariables(c("motif", "score"))
 #'
 #' @examples
 #' \dontrun{peptide_motif_score(
-#'   amino_file = "path/to/amino_sequences.txt",
 #'   codon_exp_file = c("sample1_codon_exp.txt", "sample2_codon_exp.txt"),
 #'   sample_name = c("Sample1", "Sample2"),
 #'   occurrence_threshold = 50
@@ -31,35 +31,56 @@ globalVariables(c("motif", "score"))
 #'      - Prints a message indicating the file has been processed.
 #'
 #' @export
-peptide_motif_score <- function(amino_file = NULL,
-                                codon_exp_file = NULL,
-                                sample_name = NULL,
-                                occurrence_threshold = 100){
-  # =====================================================================================
-  # calculation
-  # =====================================================================================
-  dir.create("peptide_motif",showWarnings = FALSE)
+setGeneric("peptide_motif_score",
+           function(object,
+                    codon_exp_file = NULL,
+                    sample_name = NULL,
+                    occurrence_threshold = 100, ...) standardGeneric("peptide_motif_score"))
 
-  # run code
-  pyscript.path = system.file("extdata", "peptideMotifScore.py", package = "RiboProfiler")
-  reticulate::source_python(pyscript.path)
 
-  # loop calculation
-  # x = 2
-  lapply(seq_along(codon_exp_file),function(x){
-    suppressMessages(
-      reticulate::py$peptideMotifScore(amino_file = amino_file,
-                                       codon_exp_file = codon_exp_file[x],
-                                       output_file = paste("peptide_motif/",sample_name[x],
-                                                           "_tripeptide_occupancy.txt",sep = ""),
-                                       occurrence_threshold = as.integer(occurrence_threshold)
-                                       )
-    )
 
-    message(paste(codon_exp_file[x],"has been processed!"))
-  })
 
-}
+#' method for peptide_motif_score
+#'
+#' @rdname peptide_motif_score
+#' @exportMethod peptide_motif_score
+setMethod("peptide_motif_score",
+          signature(object = "ribosomeObj"),
+          function(object,
+                   codon_exp_file = NULL,
+                   sample_name = NULL,
+                   occurrence_threshold = 100,...){
+            # =====================================================================================
+            # calculation
+            # =====================================================================================
+            dir.create("peptide_motif",showWarnings = FALSE)
+
+            # run code
+            pyscript.path = system.file("extdata", "peptideMotifScore.py", package = "RiboProfiler")
+            reticulate::source_python(pyscript.path)
+
+            # loop calculation
+            # x = 2
+            lapply(seq_along(codon_exp_file),function(x){
+              # check amino acid file
+              if(length(object@amino.acid.sequence) != 0){
+                suppressMessages(
+                  reticulate::py$peptideMotifScore(amino_file = object@amino.acid.sequence,
+                                                   codon_exp_file = codon_exp_file[x],
+                                                   output_file = paste("peptide_motif/",sample_name[x],
+                                                                       "_tripeptide_occupancy.txt",sep = ""),
+                                                   occurrence_threshold = as.integer(occurrence_threshold))
+                )
+
+                message(paste(codon_exp_file[x],"has been processed!"))
+              }else{
+                message("Please run fetch_sequence first to get amino acids file!")
+              }
+
+            }) -> tmp
+
+          }
+)
 
 
 
@@ -70,70 +91,89 @@ peptide_motif_score <- function(amino_file = NULL,
 #'
 #' This function calculates the motif scores for peptides based on provided files.
 #'
-#' @param amino_file A character string specifying the path to the amino acid file.
-#' @param normed_exp_file A character string specifying the path to the normalized expression file.
-#' @param longest_trans_file A character string specifying the path to the longest transcript file.
+#' @param object ribosomeObj object.
 #' @param norm_type A character string specifying the normalization type. It can be one of
-#'   "normed_count" (normalized count) or "average_count" (average count).
+#'   "rpm" or "average".
 #'   Default is "normed_count".
 #' @param window An integer specifying the window size for motif scanning.
 #'   Default is 50.
 #' @param occurrence_threshold An integer specifying the threshold for motif occurrences.
 #'   Default is 100.
+#' @param ... Useless args.
 #'
 #' @return The function creates output files with motif scores and prints a message for each processed sample.
 #'
 #' @examples
 #' \dontrun{# Example usage:
-#' peptide_motif_score2(amino_file = "path/to/amino_file.txt",
-#'                      normed_exp_file = "path/to/normed_exp_file.txt",
-#'                      longest_trans_file = "path/to/longest_trans_file.txt")}
+#' peptide_motif_score2(object = ribosomeObj)}
 #'
 #' @export
-peptide_motif_score2 <- function(amino_file = NULL,
-                                 normed_exp_file = NULL,
-                                 longest_trans_file = NULL,
-                                 norm_type = c("normed_count","average_count"),
-                                 window = 50,
-                                 occurrence_threshold = 100){
-  norm_type <- match.arg(norm_type,c("normed_count","average_count"))
-  # =====================================================================================
-  # output
-  # =====================================================================================
-  dir.create("normalized_count_data",showWarnings = F)
+setGeneric("peptide_motif_score2",
+           function(object,
+                    norm_type = c("rpm","average"),
+                    window = 50,
+                    occurrence_threshold = 100, ...) standardGeneric("peptide_motif_score2"))
 
-  # source code
-  pyscript.path = system.file("extdata", "averageMotifPauseScore.py", package = "RiboProfiler")
-  reticulate::source_python(pyscript.path)
 
-  sp <- unique(normed_exp_file$sample)
-  # x = 1
-  purrr::map_df(seq_along(sp),function(x){
-    tmp <- subset(normed_exp_file,sample == sp[x])
-    tmp$counts <- (tmp$counts/sum(tmp$counts))*10^6
 
-    vroom::vroom_write(tmp,col_names = F,
-                       file = paste("normalized_count_data/",sp[x],"_normed.txt",sep = ""))
 
-    # calculation
-    suppressMessages(
-      reticulate::py$averageMotifPauseScore(amino_file = amino_file,
-                                            longest_trans_file = longest_trans_file,
-                                            input_file = paste("normalized_count_data/",sp[x],"_normed.txt",sep = ""),
-                                            output_file = paste("normalized_count_data/",sp[x],
-                                                                "_tripeptide_occupancy.txt",sep = ""),
-                                            norm_type = norm_type,
-                                            window = as.integer(window),
-                                            occurrence_threshold = as.integer(occurrence_threshold)
-      )
-    )
 
-    message(paste(sp[x],"has been processed!"))
-    return(NULL)
-  }) -> tmp_normed
+#' method for peptide_motif_score2
+#'
+#' @rdname peptide_motif_score2
+#' @exportMethod peptide_motif_score2
+setMethod("peptide_motif_score2",
+          signature(object = "ribosomeObj"),
+          function(object,
+                   norm_type = c("rpm","average"),
+                   window = 50,
+                   occurrence_threshold = 100,...){
+            norm_type <- match.arg(norm_type,c("rpm","average"))
+            # =====================================================================================
+            # output
+            # =====================================================================================
+            dir.create("averaged_peptide_motif_data",showWarnings = F)
 
-}
+            # source code
+            pyscript.path = system.file("extdata", "averageMotifPauseScore.py", package = "RiboProfiler")
+            reticulate::source_python(pyscript.path)
 
+            normed_exp_file <- object@normalized.data
+            sp <- unique(normed_exp_file$sample)
+            # x = 1
+            purrr::map_df(seq_along(sp),function(x){
+              tmp <- subset(normed_exp_file,sample == sp[x])
+
+              if(norm_type == "rpm"){
+                tmp$counts <- (tmp$counts/sum(tmp$counts))*10^6
+              }
+
+              vroom::vroom_write(tmp,col_names = F,
+                                 file = paste("averaged_peptide_motif_data/",sp[x],"_normed.txt",sep = ""))
+
+              # calculation
+              # check amino acid file
+              if(length(object@amino.acid.sequence) != 0){
+                suppressMessages(
+                  reticulate::py$averageMotifPauseScore(amino_file = object@amino.acid.sequence,
+                                                        longest_trans_file = object@longest.anno.file,
+                                                        input_file = paste("averaged_peptide_motif_data/",sp[x],"_normed.txt",sep = ""),
+                                                        output_file = paste("averaged_peptide_motif_data/",sp[x],
+                                                                            "_tripeptide_occupancy.txt",sep = ""),
+                                                        norm_type = norm_type,
+                                                        window = as.integer(window),
+                                                        occurrence_threshold = as.integer(occurrence_threshold))
+                )
+
+                message(paste(sp[x],"has been processed!"))
+              }else{
+                message("Please run fetch_sequence first to get amino acids file!")
+              }
+
+              return(NULL)
+            }) -> tmp_normed
+          }
+)
 
 
 
