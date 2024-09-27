@@ -13,6 +13,7 @@ construct_ribosomeObj(
   downstream_scale = NULL,
   downstream_extend = NULL,
   has_created_data = FALSE,
+  has_created_annotation = FALSE,
   mapping_type = c("genome", "transcriptome"),
   sam_file = NULL,
   bam_file = NULL,
@@ -45,6 +46,8 @@ Used if \code{extend_utr = TRUE}.}
 Used if \code{extend_utr = TRUE}.}
 
 \item{has_created_data}{whether you have created raw data and save time to renalysis.
+Defaluts FALSE.
+@param has_created_annotation whether you have created lognest gene annotation and save time to renalysis.
 Defaluts FALSE.}
 
 \item{mapping_type}{A character string indicating the type of mapping, either "genome" or "transcriptome".

@@ -19,6 +19,8 @@
 #'  Used if \code{extend_utr = TRUE}.
 #' @param has_created_data whether you have created raw data and save time to renalysis.
 #'  Defaluts FALSE.
+#'  @param has_created_annotation whether you have created lognest gene annotation and save time to renalysis.
+#'  Defaluts FALSE.
 #' @param mapping_type A character string indicating the type of mapping, either "genome" or "transcriptome".
 #' Defaults to "genome".
 #' @param sam_file A character string specifying the path to the SAM file containing ribosome profiling
@@ -72,6 +74,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
                                   downstream_scale = NULL,
                                   downstream_extend = NULL,
                                   has_created_data = FALSE,
+                                  has_created_annotation = FALSE,
                                   mapping_type = c("genome", "transcriptome"),
                                   sam_file = NULL,
                                   bam_file = NULL,
@@ -89,8 +92,10 @@ construct_ribosomeObj <- function(gtf_file = NULL,
   # ==============================================================================
   dir.create("annotation_data",showWarnings = F)
 
-  pre_longest_trans_info(gtf_file = gtf_file,
-                         out_file = "annotation_data/longest_info.txt")
+  if(has_created_annotation == FALSE){
+    pre_longest_trans_info(gtf_file = gtf_file,
+                           out_file = "annotation_data/longest_info.txt")
+  }
 
   # extending utr
   if(extend_utr == TRUE){
@@ -110,17 +115,6 @@ construct_ribosomeObj <- function(gtf_file = NULL,
   # ==============================================================================
   # 2_perform QC analysis
   # ==============================================================================
-  # if(has_created_data == FALSE){
-  #   pre_qc_data(longest_trans_file = longest.annotation,
-  #               mapping_type = mapping_type,
-  #               sam_file = sam_file,
-  #               bam_file = bam_file,
-  #               out_file = paste(out_file_prefix,".raw.txt",sep = ""),
-  #               assignType = assignType,
-  #               seq_type = seq_type)
-  # }
-
-
   qc_df <- pre_qc_data(longest_trans_file = longest.annotation,
                        mapping_type = mapping_type,
                        sam_file = sam_file,
