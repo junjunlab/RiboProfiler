@@ -73,46 +73,47 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                 # tags
                 refname,align_pos,read_length = BAM.refname(record),BAM.position(record),BAM.seqlength(record)
 
-                # check 5'end mismatch
-                # match_details = record["MD"]
-                # end5_match = occursin(r"^0", match_details)
-
-                # if end5_match == true
-                #     match_info = "5'end_mismatch"
-                # else 
-                #     match_info = "total_match"
-                # end
-
                 # read flag tag
                 flag = BAM.flag(record)
-                # if flag == 16 || flag == 0
-                #     total_mapped_counts += 1
-                # end
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
                     if flag == 16
-                        # flag 0 reads from - stand
-                        end3Pos = align_pos + read_length - 1
-                        # read key
-                        readKey = join([refname,end3Pos],"|")
+                        if assignType == "end5"
+                            # read key
+                            pos = align_pos + read_length - 1
+                            readKey = join([refname,pos],"|")
+                        else
+                            readKey = join([refname,align_pos],"|")
+                        end
                     elseif flag == 0
-                        # flag 16 reads from + stand
-                        # read key
-                        readKey = join([refname,align_pos],"|")
+                        if assignType == "end5"
+                            # read key
+                            readKey = join([refname,align_pos],"|")
+                        else
+                            pos = align_pos + read_length - 1
+                            readKey = join([refname,pos],"|")
+                        end
                     else
                         println("There are other flags!")
                     end
                 elseif seq_type == "pairedEnd"
                     if flag == 16
-                        # flag 16 reads from + stand
-                        # read key
-                        readKey = join([refname,align_pos],"|")
+                        if assignType == "end5"
+                            # read key
+                            readKey = join([refname,align_pos],"|")
+                        else
+                            pos = align_pos + read_length - 1
+                            readKey = join([refname,pos],"|")
+                        end
                     elseif flag == 0
-                        # flag 0 reads from - stand
-                        end3Pos = align_pos + read_length - 1
-                        # read key
-                        readKey = join([refname,end3Pos],"|")
+                        if assignType == "end5"
+                            # read key
+                            pos = align_pos + read_length - 1
+                            readKey = join([refname,pos],"|")
+                        else
+                            readKey = join([refname,align_pos],"|")
+                        end
                     else
                         println("There are other flags!")
                     end
@@ -124,27 +125,17 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                     # get gene info
                     start_codon_pos,stop_codon_pos,transPos,transid = geneinfoDict[readKey]
                     
-                    # check assign type
-                    if assignType == "end5"
-                        # relative distance
-                        rel2st = transPos - start_codon_pos
-                        rel2sp = transPos - stop_codon_pos
-                        transPos_new = transPos
-                    else
-                        # relative distance
-                        rel2st = transPos + read_length - 1 - start_codon_pos
-                        rel2sp = transPos + read_length - 1 - stop_codon_pos
-                        transPos_new = transPos + read_length - 1
-                    end
+                    rel2st = transPos - start_codon_pos
+                    rel2sp = transPos - stop_codon_pos
 
                     # assign frame
                     frame_st = abs(rel2st)%3
                     frame_sp = abs(rel2sp)%3
                     
                     # read center position
-                    if flag == 16
+                    if assignType == "end5"
                         align_pos_center = transPos + (read_length ÷ 2)
-                    elseif flag == 0
+                    elseif assignType == "end3"
                         align_pos_center = transPos - (read_length ÷ 2)
                     else
                         println("There are other flags!")
@@ -160,7 +151,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                     end
 
                     # key
-                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos_new,transid],"\t")
+                    key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos,transid],"\t")
 
                     # init dict and count
                     if !haskey(frame_dict,key)
@@ -195,129 +186,4 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
         tmp_name = inFile[i]
         display("$tmp_name has been processed.")
     end
-end
-
-
-##############################################################################################################
-# for mapping to transcriptome qc analysis
-##############################################################################################################
-
-# define function
-function prepareQCdata_ontrans(;inFile,outFile,seqType,assignType)
-    # save in dict
-    frame_dict = Dict{String,Int64}()
-    # total_mapped_counts = 0
-
-    # open sam file
-    reader = open(BAM.Reader,inFile)
-    record = BAM.Record()
-
-    # loop
-    while !eof(reader)
-        empty!(record)
-        read!(reader, record)
-    # for record in reader
-        # do something
-        if BAM.ismapped(record)
-            # tags
-            refname = BAM.refname(record)
-            align_pos = BAM.position(record)
-            read_length = BAM.seqlength(record)
-            flag = BAM.flag(record)
-
-            # if flag == 16 || flag == 0
-            #     total_mapped_counts += 1
-            # end
-
-            # check 5'end mismatch
-            # match_details = record["MD"]
-            # end5_match = occursin(r"^0", match_details)
-
-            # if end5_match == true
-            #     match_info = "5'end_mismatch"
-            # else 
-            #     match_info = "total_match"
-            # end
-
-            # flag0(-strand gene) and flag16(+strand gene) for read1
-            if seqType == "singleEnd"
-                if flag == 0
-                    exact_pos = align_pos
-                elseif flag == 16
-                    exact_pos = align_pos + read_length - 1
-                else
-                    println("There are other flags!")
-                end
-            elseif seqType == "pairedEnd"
-                if flag == 0
-                    exact_pos = align_pos + read_length - 1
-                elseif flag == 16
-                    exact_pos = align_pos
-                else
-                    println("There are other flags!")
-                end
-            end
-            
-
-            # start and stop codon position
-            start_codon_pos = parse(Int,split(refname,"|")[4])
-            stop_codon_pos = parse(Int,split(refname,"|")[5])
-            transid = parse(Int,split(refname,"|")[3])
-
-            # check assign type
-            if assignType == "end5"
-                # relative distance
-                rel2st = exact_pos - start_codon_pos
-                rel2sp = exact_pos - (stop_codon_pos + 1)
-                transPos_new = exact_pos
-            else
-                # relative distance
-                rel2st = exact_pos + read_length - 1 - start_codon_pos
-                rel2sp = exact_pos + read_length - 1 - (stop_codon_pos + 1)
-                transPos_new = exact_pos + read_length - 1
-            end
-
-            # assign frame
-            frame_st = abs(rel2st)%3
-            frame_sp = abs(rel2sp)%3
-
-            # read center position
-            if flag == 16
-                align_pos_center = exact_pos + (read_length ÷ 2)
-            elseif flag == 0
-                align_pos_center = exact_pos - (read_length ÷ 2)
-            else
-                println("There are other flags!")
-            end
-
-            # assign 5'UTR/CDS/3'UTR features
-            if align_pos_center < start_codon_pos
-                ftype = 2 # 5'UTR
-            elseif start_codon_pos <= align_pos_center <= stop_codon_pos
-                ftype = 3 # CDS
-            else align_pos_center > stop_codon_pos
-                ftype = 1 # 3'UTR
-            end
-
-            # key
-            key = join([read_length,frame_st,rel2st,frame_sp,rel2sp,ftype,transPos_new,transid],"\t")
-            
-            # init dict and count
-            if !haskey(frame_dict,key)
-                frame_dict[key] = 1
-            else
-                frame_dict[key] += 1
-            end
-        end
-    end
-
-    close(reader)
-    # output file
-    outfile = open(outFile,"w")
-    for (key,val) in frame_dict
-        # write(outfile,"$key\t$val\n")
-        # normalized_counts = (val/total_mapped_counts)*1000000
-        write(outfile,"$key\t$val\n")
-    end
-    close(outfile)
 end

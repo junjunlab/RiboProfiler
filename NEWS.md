@@ -27,3 +27,4 @@ is using PausePred described with a sliding window. More details please refer to
 ## RiboProfiler version 0.2.0 update
 - Constructed into a ribosomeObj Object, methods can be applied on ribosomeObj Object.
 - Implementary with RiboSeqTools package functions to deal with selective ribosome profilling data.
+- Add **ribo_bam_to_bw** to transform ribo bamfiles to bigwig.

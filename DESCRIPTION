@@ -1,6 +1,6 @@
 Package: RiboProfiler
 Title: Ribo-seq Data Analysis and Visualization
-Version: 0.2.0
+Version: 0.2.1
 Author: Jun Zhang
 Maintainer: Jun Zhang <3219030654@stu.cpu.edu.cn>
 Description: Integrating Ribo-SEQ upstream and downstream analysis process from 

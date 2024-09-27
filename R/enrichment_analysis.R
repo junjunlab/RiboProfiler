@@ -587,6 +587,14 @@ setMethod("enrichment_track_plot",
               # ================================================================
               # plot
               # ================================================================
+              if(!is.null(sample_color)){
+                color_layer <- scale_color_manual(values = sample_color)
+                fill_layer <- scale_fill_manual(values = sample_color)
+              }else{
+                color_layer <- NULL
+                fill_layer <- NULL
+              }
+
               pmain <-
                 ggplot(df_plotp_merged_rep) +
                 # geom_ribbon(aes(x = pos,y = ratio,
@@ -604,8 +612,7 @@ setMethod("enrichment_track_plot",
                       strip.text.x = element_text(face = "bold.italic",size = rel(1)),
                       strip.background = element_blank(),
                       strip.text.y.right = strip_text_y) +
-                scale_color_manual(values = sample_color) +
-                scale_fill_manual(values = sample_color) +
+                color_layer + fill_layer +
                 xlab("Ribosome along transcript position\n (codons / amino acids)") +
                 ylab(ylabel) +
                 xlim(c(0,cds_len))
