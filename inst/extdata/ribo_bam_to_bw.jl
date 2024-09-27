@@ -62,7 +62,7 @@ function ribo_bam_to_bw(;bam_file,output_file,seq_type,assignType,normalization,
             # check read length
             if min_length <= read_length <= max_length
                 # read flag tag
-                flag = BAM.flag(record)
+                flag = BAM.flags(record)
                 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"

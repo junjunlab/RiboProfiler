@@ -74,7 +74,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                 refname,align_pos,read_length = BAM.refname(record),BAM.position(record),BAM.seqlength(record)
 
                 # read flag tag
-                flag = BAM.flag(record)
+                flag = BAM.flags(record)
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
