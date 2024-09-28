@@ -18,7 +18,7 @@ def detectPausingSite(longest_trans_file,normed_file,output_file,min_counts=64,w
         for line in input:
             # fileds = line.split()
             # print(line.split())
-            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,exp = line.split()
+            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,_,exp = line.split()
             
             utr5,cds,_ = gene_info[trans_id]
             
@@ -39,7 +39,7 @@ def detectPausingSite(longest_trans_file,normed_file,output_file,min_counts=64,w
 
     with open(normed_file,'r') as input:
         for line in input:
-            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,exp = line.split()
+            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,_,exp = line.split()
             if trans_id in total_exp_retained:
                 if trans_id in trans_id_dict:
                     # trans_id_dict[trans_id].update({int(trans_pos): float(exp)})

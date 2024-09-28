@@ -595,6 +595,12 @@ setMethod("enrichment_track_plot",
                 fill_layer <- NULL
               }
 
+              if(mode == "codon"){
+                xlabel <- "Ribosome along transcript position\n (codons / amino acids)"
+              }else{
+                xlabel <- "Ribosome along transcript position\n (nucleotides / nts)"
+              }
+
               pmain <-
                 ggplot(df_plotp_merged_rep) +
                 # geom_ribbon(aes(x = pos,y = ratio,
@@ -613,7 +619,7 @@ setMethod("enrichment_track_plot",
                       strip.background = element_blank(),
                       strip.text.y.right = strip_text_y) +
                 color_layer + fill_layer +
-                xlab("Ribosome along transcript position\n (codons / amino acids)") +
+                xlab(xlabel) +
                 ylab(ylabel) +
                 xlim(c(0,cds_len))
 

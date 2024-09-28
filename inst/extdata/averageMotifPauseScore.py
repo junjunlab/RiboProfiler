@@ -25,7 +25,7 @@ def averageMotifPauseScore(amino_file,longest_trans_file,input_file,output_file,
     ###########################################################################################
     with open(input_file,'r') as input:
         for line in input:
-            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,exp = line.split()
+            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,_,exp = line.split()
             utr5,cds,_ = gene_info[trans_id]
             cds_pos = int(trans_pos) - utr5
             
@@ -41,7 +41,7 @@ def averageMotifPauseScore(amino_file,longest_trans_file,input_file,output_file,
     pause_score = {}
     with open(input_file,'r') as input:
         for line in input:
-            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,exp = line.split()
+            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,_,exp = line.split()
             utr5,cds,_ = gene_info[trans_id]
             cds_pos = int(trans_pos) - utr5
             

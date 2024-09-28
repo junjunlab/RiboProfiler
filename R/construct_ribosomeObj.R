@@ -19,7 +19,7 @@
 #'  Used if \code{extend_utr = TRUE}.
 #' @param has_created_data whether you have created raw data and save time to renalysis.
 #'  Defaluts FALSE.
-#'  @param has_created_annotation whether you have created lognest gene annotation and save time to renalysis.
+#' @param has_created_annotation whether you have created lognest gene annotation and save time to renalysis.
 #'  Defaluts FALSE.
 #' @param mapping_type A character string indicating the type of mapping, either "genome" or "transcriptome".
 #' Defaults to "genome".

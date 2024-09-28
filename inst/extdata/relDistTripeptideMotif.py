@@ -27,7 +27,7 @@ def relDistTripeptideMotif(amino_file,longest_trans_file,normed_file,motif,outpu
     ###########################################################################################
     with open(normed_file,'r') as input:
         for line in input:
-            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,exp = line.split()
+            _,_,_,_,_,_,trans_pos,trans_id,counts,_,_,_,exp = line.split()
             
             if trans_id in gene_info:
                 seq = str(amino[trans_id])
