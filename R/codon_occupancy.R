@@ -181,6 +181,7 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
                                  facet = FALSE,
                                  codon_type = c("codon","amino")){
   col <- match.arg(col,c("normal","chemistry"))
+  codon_type <- match.arg(codon_type,c("codon","amino"))
   # ============================================================================
   # loop load file
   # ============================================================================

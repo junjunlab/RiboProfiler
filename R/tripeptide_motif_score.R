@@ -6,21 +6,14 @@ globalVariables(c("motif", "score"))
 #' It uses a Python script to perform the calculations and saves the results for each sample.
 #'
 #' @param object ribosomeObj object.
-#' @param codon_exp_file A vector of file paths to codon expression data files.
-#' @param sample_name A vector of sample names corresponding to each codon expression file.
+#' @param min_counts Minimum counts to filter gene, default 64.
+#' @param average_normalization Whether do average normalization, yes or no.
 #' @param occurrence_threshold An integer specifying the minimum occurrence threshold for peptide motifs.
 #' @param ... Useless args.
-#'        Default is 50.
 #'
 #' @return This function does not return a value, but creates output files in a 'peptide_motif' directory.
 #'         Each output file is named '[sample_name]_tripeptide_occupancy.txt'.
 #'
-#' @examples
-#' \dontrun{peptide_motif_score(
-#'   codon_exp_file = c("sample1_codon_exp.txt", "sample2_codon_exp.txt"),
-#'   sample_name = c("Sample1", "Sample2"),
-#'   occurrence_threshold = 50
-#' )}
 #'
 #' @details This function performs the following steps:
 #'   1. Creates a 'peptide_motif' directory if it doesn't exist.
@@ -33,8 +26,8 @@ globalVariables(c("motif", "score"))
 #' @export
 setGeneric("peptide_motif_score",
            function(object,
-                    codon_exp_file = NULL,
-                    sample_name = NULL,
+                    min_counts = 64,
+                    average_normalization = c("yes","no"),
                     occurrence_threshold = 100, ...) standardGeneric("peptide_motif_score"))
 
 
@@ -47,37 +40,49 @@ setGeneric("peptide_motif_score",
 setMethod("peptide_motif_score",
           signature(object = "ribosomeObj"),
           function(object,
-                   codon_exp_file = NULL,
-                   sample_name = NULL,
+                   min_counts = 64,
+                   average_normalization = c("yes","no"),
                    occurrence_threshold = 100,...){
+            average_normalization <- match.arg(average_normalization,c("yes","no"))
             # =====================================================================================
             # calculation
             # =====================================================================================
             dir.create("peptide_motif",showWarnings = FALSE)
 
-            # run code
+            # source code
             pyscript.path = system.file("extdata", "peptideMotifScore.py", package = "RiboProfiler")
             reticulate::source_python(pyscript.path)
 
-            # loop calculation
-            # x = 2
-            lapply(seq_along(codon_exp_file),function(x){
+            normed_exp_file <- object@normalized.data
+            sp <- unique(normed_exp_file$sample)
+            # x = 1
+            purrr::map_df(seq_along(sp),function(x){
+              tmp <- subset(normed_exp_file,sample == sp[x])
+
+              vroom::vroom_write(tmp,col_names = F,
+                                 file = paste("peptide_motif/",sp[x],"_normed.txt",sep = ""))
+
+              # calculation
               # check amino acid file
               if(length(object@amino.acid.sequence) != 0){
                 suppressMessages(
                   reticulate::py$peptideMotifScore(amino_file = object@amino.acid.sequence,
-                                                   codon_exp_file = codon_exp_file[x],
-                                                   output_file = paste("peptide_motif/",sample_name[x],
+                                                   longest_trans_file = object@longest.anno.file,
+                                                   normed_file = paste("peptide_motif/",sp[x],"_normed.txt",sep = ""),
+                                                   min_counts = as.integer(min_counts),
+                                                   average_normalization = average_normalization,
+                                                   output_file = paste("peptide_motif/",sp[x],
                                                                        "_tripeptide_occupancy.txt",sep = ""),
                                                    occurrence_threshold = as.integer(occurrence_threshold))
                 )
 
-                message(paste(codon_exp_file[x],"has been processed!"))
+                message(paste(sp[x],"has been processed!"))
               }else{
                 message("Please run fetch_sequence first to get amino acids file!")
               }
 
-            }) -> tmp
+              return(NULL)
+            }) -> tmp_normed
 
           }
 )

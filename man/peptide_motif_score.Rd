@@ -7,16 +7,16 @@
 \usage{
 peptide_motif_score(
   object,
-  codon_exp_file = NULL,
-  sample_name = NULL,
+  min_counts = 64,
+  average_normalization = c("yes", "no"),
   occurrence_threshold = 100,
   ...
 )
 
 \S4method{peptide_motif_score}{ribosomeObj}(
   object,
-  codon_exp_file = NULL,
-  sample_name = NULL,
+  min_counts = 64,
+  average_normalization = c("yes", "no"),
   occurrence_threshold = 100,
   ...
 )
@@ -24,14 +24,13 @@ peptide_motif_score(
 \arguments{
 \item{object}{ribosomeObj object.}
 
-\item{codon_exp_file}{A vector of file paths to codon expression data files.}
+\item{min_counts}{Minimum counts to filter gene, default 64.}
 
-\item{sample_name}{A vector of sample names corresponding to each codon expression file.}
+\item{average_normalization}{Whether do average normalization, yes or no.}
 
 \item{occurrence_threshold}{An integer specifying the minimum occurrence threshold for peptide motifs.}
 
-\item{...}{Useless args.
-Default is 50.}
+\item{...}{Useless args.}
 }
 \value{
 This function does not return a value, but creates output files in a 'peptide_motif' directory.
@@ -49,12 +48,4 @@ This function performs the following steps:
      - Calls the Python function to calculate peptide motif scores.
      - Saves the results in the 'peptide_motif' directory.
      - Prints a message indicating the file has been processed.
-}
-\examples{
-\dontrun{peptide_motif_score(
-  codon_exp_file = c("sample1_codon_exp.txt", "sample2_codon_exp.txt"),
-  sample_name = c("Sample1", "Sample2"),
-  occurrence_threshold = 50
-)}
-
 }
