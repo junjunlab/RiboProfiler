@@ -269,6 +269,8 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
   }else{
     if(!is.null(group_name)){
       df_codon <- codon_oc %>%
+        group_by(group_name,amino,codon) %>%
+        summarise(density = mean(density)) %>%
         tidyr::spread(group_name,density)
     }else{
       df_codon <- codon_oc %>%
