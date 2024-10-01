@@ -502,7 +502,7 @@ setMethod("enrichment_track_plot",
                 strip_text_y <- element_text(angle = 0,hjust = 0)
               }
 
-              gene_df <- subset(ganao,gene_name == select_gene[x])
+              gene_df <- subset(ganao,gene_name == select_gene[x] & trans_id %in% unique(ratio_df_new$trans_id))
 
               if(mode == "codon"){
                 cds_len <- gene_df$CDS_length/3
