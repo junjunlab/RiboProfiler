@@ -364,6 +364,7 @@ setGeneric("enrichment_track_plot",
                     select_sample = NULL,
                     assay = c("normalized","enriched"),
                     geom_type = c("line","col"),
+                    filter_cds_divided_by3 = TRUE,
                     merge_rep = TRUE,
                     collapse = FALSE,
                     sample_color = NULL,
@@ -399,6 +400,7 @@ setMethod("enrichment_track_plot",
                    select_sample = NULL,
                    assay = c("normalized","enriched"),
                    geom_type = c("line","col"),
+                   filter_cds_divided_by3 = TRUE,
                    merge_rep = TRUE,
                    collapse = FALSE,
                    sample_color = NULL,
@@ -454,11 +456,19 @@ setMethod("enrichment_track_plot",
               ratio_df_new <- ratio_df %>%
                 dplyr::select(trans_pos,trans_id,sample,rep,group,norm_exp) %>%
                 dplyr::left_join(y = ganao,by = "trans_id") %>%
-                dplyr::filter(gene_name %in% select_gene & sample %in% select_sample) %>%
-                dplyr::mutate(cdsft = dplyr::if_else(CDS_length%%3 == 0,1,0)) %>%
-                # filter cds length %%3 == 0
-                dplyr::filter(cdsft == 1) %>%
-                dplyr::mutate(trans_pos = trans_pos - `5UTR_length`)
+                dplyr::filter(gene_name %in% select_gene & sample %in% select_sample)
+
+              if(filter_cds_divided_by3 == "TRUE"){
+                ratio_df_new <- ratio_df_new %>%
+                  dplyr::mutate(cdsft = dplyr::if_else(CDS_length%%3 == 0,1,0)) %>%
+                  # filter cds length %%3 == 0
+                  dplyr::filter(cdsft == 1) %>%
+                  dplyr::mutate(trans_pos = trans_pos - `5UTR_length`)
+              }else{
+                ratio_df_new <- ratio_df_new %>%
+                  dplyr::mutate(trans_pos = trans_pos - `5UTR_length`)
+              }
+
 
               # check unit
               if(mode == "codon"){
