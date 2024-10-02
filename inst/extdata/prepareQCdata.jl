@@ -1,5 +1,6 @@
 # load package
 using XAM
+using Pkg
 
 ##############################################################################################################
 # for mapping to genome qc analysis
@@ -74,7 +75,12 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                 refname,align_pos,read_length = SAM.refname(record),SAM.position(record),SAM.seqlength(record)
 
                 # read flag tag
-                flag = SAM.flags(record)
+                # check XAM version
+                if string(Pkg.installed()["XAM"]) == "0.4.0"
+                    flag = BAM.flags(record)
+                else
+                    flag = BAM.flag(record)
+                end
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
