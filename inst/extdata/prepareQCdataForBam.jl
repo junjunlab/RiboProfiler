@@ -80,6 +80,7 @@ function prepareQCdata(;longestTransInfo,inFile,outFile,seqType,assignType)
                     flag = BAM.flags(record)
                 else
                     flag = BAM.flag(record)
+                end
 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
