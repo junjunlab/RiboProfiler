@@ -28,3 +28,4 @@ is using PausePred described with a sliding window. More details please refer to
 - Constructed into a ribosomeObj Object, methods can be applied on ribosomeObj Object.
 - Implementary with RiboSeqTools package functions to deal with selective ribosome profilling data.
 - Add **ribo_bam_to_bw** to transform ribo bamfiles to bigwig.
+- Add **XAM_version** for **ribo_bam_to_bw** and **pre_qc_data* to choose suitable XAM version to analysis.

@@ -7,6 +7,7 @@
 pre_qc_data(
   mapping_type = c("genome", "transcriptome"),
   julia_path = NULL,
+  XAM_version = c(3, 4),
   longest_trans_file = NULL,
   sam_file = NULL,
   bam_file = NULL,
@@ -22,6 +23,8 @@ pre_qc_data(
 \item{mapping_type}{The mapping type for your sam files, "genome" or "transcriptome".}
 
 \item{julia_path}{The julia program path on the computer.}
+
+\item{XAM_version}{The XAM version you have installed, 3(0.3.1) or 4(0.4.0).}
 
 \item{longest_trans_file}{A string specifying the path to the longest transcript
 file.}

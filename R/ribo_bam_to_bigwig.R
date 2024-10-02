@@ -6,6 +6,7 @@
 #' @param bam_file Character string. Path to the input BAM file.
 #' @param output_file Character string. Path for the output BigWig file.
 #' @param julia_path The julia program path on the computer.
+#' @param XAM_version The XAM version you have installed, 3(0.3.1) or 4(0.4.0).
 #' @param seq_type Character string. Sequencing type, either "pairedEnd" or "singleEnd". Default is "pairedEnd".
 #' @param assignType Character string. Read assignment type, either "end5" or "end3". Default is "end5".
 #' @param normalization Character string. Normalization method, either "rpm" or "counts". Default is "rpm".
@@ -42,6 +43,7 @@
 ribo_bam_to_bw <- function(bam_file = NULL,
                            output_file = NULL,
                            julia_path = NULL,
+                           XAM_version = c(3,4),
                            seq_type = c("pairedEnd","singleEnd"),
                            assignType = c("end5","end3"),
                            normalization = c("rpm","counts"),
@@ -51,6 +53,7 @@ ribo_bam_to_bw <- function(bam_file = NULL,
   seq_type <- match.arg(seq_type,c("pairedEnd","singleEnd"))
   assignType <- match.arg(assignType,c("end5","end3"))
   normalization <- match.arg(normalization,c("rpm","counts"))
+  XAM_version <- match.arg(XAM_version,c(3,4))
 
   # check julia
   if(!is.null(julia_path)){
@@ -71,7 +74,13 @@ ribo_bam_to_bw <- function(bam_file = NULL,
   # choose function
   JuliaCall::julia_eval(script_path)
 
-  ribo_bam_to_bw <- JuliaCall::julia_eval("ribo_bam_to_bw")
+  # check XAM version
+  if(XAM_version == 3){
+    ribo_bam_to_bw <- JuliaCall::julia_eval("ribo_bam_to_bw")
+  }else{
+    ribo_bam_to_bw <- JuliaCall::julia_eval("ribo_bam_to_bw2")
+  }
+
 
   # run
   ribo_bam_to_bw(bam_file = bam_file,

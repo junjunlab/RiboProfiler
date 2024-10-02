@@ -8,6 +8,7 @@ ribo_bam_to_bw(
   bam_file = NULL,
   output_file = NULL,
   julia_path = NULL,
+  XAM_version = c(3, 4),
   seq_type = c("pairedEnd", "singleEnd"),
   assignType = c("end5", "end3"),
   normalization = c("rpm", "counts"),
@@ -22,6 +23,8 @@ ribo_bam_to_bw(
 \item{output_file}{Character string. Path for the output BigWig file.}
 
 \item{julia_path}{The julia program path on the computer.}
+
+\item{XAM_version}{The XAM version you have installed, 3(0.3.1) or 4(0.4.0).}
 
 \item{seq_type}{Character string. Sequencing type, either "pairedEnd" or "singleEnd". Default is "pairedEnd".}
 

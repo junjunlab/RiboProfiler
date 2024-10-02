@@ -6,6 +6,7 @@
 #'
 #' @param mapping_type The mapping type for your sam files, "genome" or "transcriptome".
 #' @param julia_path The julia program path on the computer.
+#' @param XAM_version The XAM version you have installed, 3(0.3.1) or 4(0.4.0).
 #' @param longest_trans_file A string specifying the path to the longest transcript
 #' file.
 #' @param sam_file A character vector specifying the paths to the SAM files.
@@ -34,6 +35,7 @@
 #' @export
 pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
                         julia_path = NULL,
+                        XAM_version = c(3,4),
                         longest_trans_file = NULL,
                         sam_file = NULL,
                         bam_file = NULL,
@@ -46,6 +48,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
   mapping_type <- match.arg(mapping_type,c("genome","transcriptome"))
   seq_type <- match.arg(seq_type,c("pairedEnd","singleEnd"))
   assignType <- match.arg(assignType,c("end5","end3"))
+  XAM_version <- match.arg(XAM_version,c(3,4))
 
   if(has_created_data == FALSE){
     if(!dir.exists("1.raw-data")){
@@ -80,7 +83,12 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
     JuliaCall::julia_eval(script_path)
 
     if(mapping_type == "genome"){
-      prepareQCdata <- JuliaCall::julia_eval("prepareQCdata")
+      # check XAM version
+      if(XAM_version == 3){
+        prepareQCdata <- JuliaCall::julia_eval("prepareQCdata")
+      }else{
+        prepareQCdata <- JuliaCall::julia_eval("prepareQCdata2")
+      }
 
       # inputfile
       if(!is.null(sam_file) & is.null(bam_file)){
