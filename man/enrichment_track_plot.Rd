@@ -74,6 +74,9 @@ or enrichment data. Must be one of \code{"normalized"} or \code{"enriched"}. Def
 \item{geom_type}{A character string defining the geometry type for the plot. Can be
 either \code{"line"} (line plot) or \code{"col"} (column/bar plot). Default is \code{"line"}.}
 
+\item{filter_cds_divided_by3}{Wthether filter genes whose cds region length can be
+divided with 3, default True.}
+
 \item{merge_rep}{Logical; if \code{TRUE}, data from replicates are merged into one plot. Default is \code{TRUE}.}
 
 \item{collapse}{Logical; if \code{TRUE}, replicates or sample groups are collapsed into a single plot. Default is \code{FALSE}.}
