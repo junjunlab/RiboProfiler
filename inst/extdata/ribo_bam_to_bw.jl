@@ -1,6 +1,6 @@
 using XAM
 using BigWig
-using Pkg
+# using Pkg
 
 function ribo_bam_to_bw(;bam_file,output_file,seq_type,assignType,normalization,min_length,max_length,offset)
     ##############################################################################################################
@@ -63,12 +63,7 @@ function ribo_bam_to_bw(;bam_file,output_file,seq_type,assignType,normalization,
             # check read length
             if min_length <= read_length <= max_length
                 # read flag tag
-                # check XAM version
-                if string(Pkg.installed()["XAM"]) == "0.4.0"
-                    flag = BAM.flags(record)
-                else
-                    flag = BAM.flag(record)
-                end
+                flag = BAM.flag(record)
                 
                 # flag16(+) use 5'end as alignpos and flag0(-) use 3'end as alignpos
                 if seq_type == "singleEnd"
