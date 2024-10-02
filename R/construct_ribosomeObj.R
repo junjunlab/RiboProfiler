@@ -29,6 +29,8 @@
 #' alignment data. Either \code{bam_file} or \code{sam_file} must be provided.
 #' @param out_file_prefix A character string specifying the prefix for the output files generated during
 #' the QC analysis.
+#' @param annotation_prefix A character string specifying the prefix for the longest annotation output files.
+#' Defaluts NULL.
 #' @param rep_name The replicates name. Default NULL.
 #' @param group_name The group name. Default NULL.
 #' @param assignType A character string specifying the assignment type for mapping data,
@@ -79,6 +81,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
                                   sam_file = NULL,
                                   bam_file = NULL,
                                   out_file_prefix = NULL,
+                                  annotation_prefix = NULL,
                                   rep_name = NULL,
                                   group_name = NULL,
                                   assignType = c("end5", "end3"),
@@ -92,24 +95,36 @@ construct_ribosomeObj <- function(gtf_file = NULL,
   # ==============================================================================
   dir.create("annotation_data",showWarnings = F)
 
+  if(is.null(annotation_prefix)){
+    out_anno_file <- "annotation_data/longest_info.txt"
+  }else{
+    out_anno_file <- paste("annotation_data/",annotation_prefix,"_longest_info.txt",sep = "")
+  }
+
   if(has_created_annotation == FALSE){
     pre_longest_trans_info(gtf_file = gtf_file,
-                           out_file = "annotation_data/longest_info.txt")
+                           out_file = out_anno_file)
   }
 
   # extending utr
   if(extend_utr == TRUE){
+    if(is.null(annotation_prefix)){
+      longest.annotation <- "annotation_data/longest_info_extend.txt"
+    }else{
+      longest.annotation <- paste("annotation_data/",annotation_prefix,"_longest_info_extend.txt",sep = "")
+    }
+
     # extend CDS
-    df_extend <- gene_anno_extend(longest_trans_file = "annotation_data/longest_info.txt",
+    df_extend <- gene_anno_extend(longest_trans_file = out_anno_file,
                                   upstream_scale = upstream_scale,
                                   upstream_extend = upstream_extend,
                                   downstream_scale = downstream_scale,
                                   downstream_extend = downstream_extend,
-                                  output_file = "annotation_data/longest_info_extend.txt")
+                                  output_file = longest.annotation)
 
-    longest.annotation <- "annotation_data/longest_info_extend.txt"
+
   }else{
-    longest.annotation <- "annotation_data/longest_info.txt"
+    longest.annotation <- out_anno_file
   }
 
   # ==============================================================================

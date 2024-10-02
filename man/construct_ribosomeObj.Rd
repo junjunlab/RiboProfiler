@@ -18,6 +18,7 @@ construct_ribosomeObj(
   sam_file = NULL,
   bam_file = NULL,
   out_file_prefix = NULL,
+  annotation_prefix = NULL,
   rep_name = NULL,
   group_name = NULL,
   assignType = c("end5", "end3"),
@@ -62,6 +63,9 @@ alignment data. Either \code{bam_file} or \code{sam_file} must be provided.}
 
 \item{out_file_prefix}{A character string specifying the prefix for the output files generated during
 the QC analysis.}
+
+\item{annotation_prefix}{A character string specifying the prefix for the longest annotation output files.
+Defaluts NULL.}
 
 \item{rep_name}{The replicates name. Default NULL.}
 
