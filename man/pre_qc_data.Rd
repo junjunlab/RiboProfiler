@@ -11,6 +11,7 @@ pre_qc_data(
   longest_trans_file = NULL,
   sam_file = NULL,
   bam_file = NULL,
+  out_file_dir = NULL,
   out_file_prefix = NULL,
   rep_name = NULL,
   group_name = NULL,
@@ -32,6 +33,8 @@ file.}
 \item{sam_file}{A character vector specifying the paths to the SAM files.}
 
 \item{bam_file}{A character vector specifying the paths to the BAM files.}
+
+\item{out_file_dir}{A character vector specifying the paths to the output data.}
 
 \item{out_file_prefix}{A character string specifying the prefix for the output files generated during
 the QC analysis.}

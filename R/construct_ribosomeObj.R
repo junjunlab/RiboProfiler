@@ -28,6 +28,7 @@
 #' alignment data. Either \code{sam_file} or \code{bam_file} must be provided.
 #' @param bam_file A character string specifying the path to the BAM file containing ribosome profiling
 #' alignment data. Either \code{bam_file} or \code{sam_file} must be provided.
+#' @param out_file_dir A character vector specifying the paths to the output data.
 #' @param out_file_prefix A character string specifying the prefix for the output files generated during
 #' the QC analysis.
 #' @param annotation_prefix A character string specifying the prefix for the longest annotation output files.
@@ -82,6 +83,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
                                   mapping_type = c("genome", "transcriptome"),
                                   sam_file = NULL,
                                   bam_file = NULL,
+                                  out_file_dir = NULL,
                                   out_file_prefix = NULL,
                                   annotation_prefix = NULL,
                                   rep_name = NULL,
@@ -138,6 +140,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
                        sam_file = sam_file,
                        bam_file = bam_file,
                        XAM_version = XAM_version,
+                       out_file_dir = out_file_dir,
                        out_file_prefix = out_file_prefix,
                        has_created_data = has_created_data,
                        rep_name = rep_name,

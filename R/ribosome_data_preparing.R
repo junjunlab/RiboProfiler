@@ -11,8 +11,10 @@
 #' file.
 #' @param sam_file A character vector specifying the paths to the SAM files.
 #' @param bam_file A character vector specifying the paths to the BAM files.
+#' @param out_file_dir A character vector specifying the paths to the output data.
 #' @param seq_type The sequencing type for fastq files, "singleEnd" or "pairedEnd".
 #' @param assignType The reads assignment type, 5'end or 3'end, choices c("end5","end3"). Default 5'end.
+#' @param out_file_dir A character vector specifying the paths to the output data.
 #' @param out_file_prefix A character string specifying the prefix for the output files generated during
 #' the QC analysis.
 #' @param rep_name The replicates name. Default NULL.
@@ -39,6 +41,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
                         longest_trans_file = NULL,
                         sam_file = NULL,
                         bam_file = NULL,
+                        out_file_dir = NULL,
                         out_file_prefix = NULL,
                         rep_name = NULL,
                         group_name = NULL,
@@ -98,7 +101,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
       }
 
       # excute function
-      outFile_tmp = paste("1.raw-data/",out_file_prefix,".raw.txt",sep = "")
+      outFile_tmp = paste("1.raw-data/",out_file_dir,out_file_prefix,".raw.txt",sep = "")
       prepareQCdata(longestTransInfo = longest_trans_file,
                     inFile = inFile,
                     assignType = assignType,
@@ -116,7 +119,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
 
       lapply(1:length(inFile), function(x){
         # excute function
-        outFile_tmp = paste("1.raw-data/",out_file_prefix[x],".raw.txt",sep = "")
+        outFile_tmp = paste("1.raw-data/",out_file_dir,out_file_prefix[x],".raw.txt",sep = "")
         prepareQCdata(inFile = inFile[x],
                       outFile = outFile_tmp,
                       assignType = assignType,
@@ -131,7 +134,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
   # load raw data in R
   # ============================================================================
   # loop read file
-  file <- paste("1.raw-data/",out_file_prefix,".raw.txt",sep = "")
+  file <- paste("1.raw-data/",out_file_dir,out_file_prefix,".raw.txt",sep = "")
   plyr::ldply(seq_along(file),function(x){
     tmp <- vroom::vroom(file = file[x],col_names = F,show_col_types = FALSE)
 

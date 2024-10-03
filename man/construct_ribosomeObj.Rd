@@ -18,6 +18,7 @@ construct_ribosomeObj(
   mapping_type = c("genome", "transcriptome"),
   sam_file = NULL,
   bam_file = NULL,
+  out_file_dir = NULL,
   out_file_prefix = NULL,
   annotation_prefix = NULL,
   rep_name = NULL,
@@ -63,6 +64,8 @@ alignment data. Either \code{sam_file} or \code{bam_file} must be provided.}
 
 \item{bam_file}{A character string specifying the path to the BAM file containing ribosome profiling
 alignment data. Either \code{bam_file} or \code{sam_file} must be provided.}
+
+\item{out_file_dir}{A character vector specifying the paths to the output data.}
 
 \item{out_file_prefix}{A character string specifying the prefix for the output files generated during
 the QC analysis.}
