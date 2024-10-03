@@ -14,6 +14,7 @@ construct_ribosomeObj(
   downstream_extend = NULL,
   has_created_data = FALSE,
   has_created_annotation = FALSE,
+  XAM_version = c(3, 4),
   mapping_type = c("genome", "transcriptome"),
   sam_file = NULL,
   bam_file = NULL,

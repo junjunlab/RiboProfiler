@@ -77,6 +77,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
                                   downstream_extend = NULL,
                                   has_created_data = FALSE,
                                   has_created_annotation = FALSE,
+                                  XAM_version = c(3,4),
                                   mapping_type = c("genome", "transcriptome"),
                                   sam_file = NULL,
                                   bam_file = NULL,
@@ -89,6 +90,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
   mapping_type <- match.arg(mapping_type,c("genome", "transcriptome"))
   assignType <- match.arg(assignType,c("end5", "end3"))
   seq_type <- match.arg(seq_type,c("pairedEnd", "singleEnd"))
+  XAM_version <- match.arg(XAM_version,c(3,4))
 
   # ==============================================================================
   # 1_prepare gene annotation file
@@ -134,6 +136,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
                        mapping_type = mapping_type,
                        sam_file = sam_file,
                        bam_file = bam_file,
+                       XAM_version = XAM_version,
                        out_file_prefix = out_file_prefix,
                        has_created_data = has_created_data,
                        rep_name = rep_name,
