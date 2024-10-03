@@ -58,13 +58,13 @@ write to the output directory.
 }
 \examples{
 \dontrun{
-bam_to_bw(bam_file = "path/to/input.bam",
-          output_file = "path/to/output.bw",
-          seq_type = "singleEnd",
-          assignType = "end5",
-          normalization = "rpm",
-          min_length = 25,
-          max_length = 35)
+ribo_bam_to_bw(bam_file = "path/to/input.bam",
+               output_file = "path/to/output.bw",
+               seq_type = "singleEnd",
+               assignType = "end5",
+               normalization = "rpm",
+               min_length = 25,
+               max_length = 35)
 }
 
 
