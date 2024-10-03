@@ -21,6 +21,7 @@
 #'  Defaluts FALSE.
 #' @param has_created_annotation whether you have created lognest gene annotation and save time to renalysis.
 #'  Defaluts FALSE.
+#' @param XAM_version The XAM version you have installed, "3"(0.3.1) or "4"(0.4.0).
 #' @param mapping_type A character string indicating the type of mapping, either "genome" or "transcriptome".
 #' Defaults to "genome".
 #' @param sam_file A character string specifying the path to the SAM file containing ribosome profiling
@@ -77,7 +78,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
                                   downstream_extend = NULL,
                                   has_created_data = FALSE,
                                   has_created_annotation = FALSE,
-                                  XAM_version = c(3,4),
+                                  XAM_version = c("3","4"),
                                   mapping_type = c("genome", "transcriptome"),
                                   sam_file = NULL,
                                   bam_file = NULL,
@@ -90,7 +91,7 @@ construct_ribosomeObj <- function(gtf_file = NULL,
   mapping_type <- match.arg(mapping_type,c("genome", "transcriptome"))
   assignType <- match.arg(assignType,c("end5", "end3"))
   seq_type <- match.arg(seq_type,c("pairedEnd", "singleEnd"))
-  XAM_version <- match.arg(XAM_version,c(3,4))
+  XAM_version <- match.arg(XAM_version,c("3","4"))
 
   # ==============================================================================
   # 1_prepare gene annotation file

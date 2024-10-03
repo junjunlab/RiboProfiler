@@ -14,7 +14,7 @@ construct_ribosomeObj(
   downstream_extend = NULL,
   has_created_data = FALSE,
   has_created_annotation = FALSE,
-  XAM_version = c(3, 4),
+  XAM_version = c("3", "4"),
   mapping_type = c("genome", "transcriptome"),
   sam_file = NULL,
   bam_file = NULL,
@@ -52,6 +52,8 @@ Defaluts FALSE.}
 
 \item{has_created_annotation}{whether you have created lognest gene annotation and save time to renalysis.
 Defaluts FALSE.}
+
+\item{XAM_version}{The XAM version you have installed, "3"(0.3.1) or "4"(0.4.0).}
 
 \item{mapping_type}{A character string indicating the type of mapping, either "genome" or "transcriptome".
 Defaults to "genome".}
