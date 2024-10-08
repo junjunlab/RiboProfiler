@@ -7,6 +7,10 @@ globalVariables(c("motif", "score"))
 #'
 #' @param object ribosomeObj object.
 #' @param min_counts Minimum counts to filter gene, default 64.
+#' @param norm_type The nomalization methods for ribosome density. "average" is calculated by
+#' the count at each position divided by mean density across cds region. "rpm"
+#' is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+#' Default is "average".
 #' @param average_normalization Whether do average normalization, yes or no.
 #' @param occurrence_threshold An integer specifying the minimum occurrence threshold for peptide motifs.
 #' @param ... Useless args.
@@ -27,6 +31,7 @@ globalVariables(c("motif", "score"))
 setGeneric("peptide_motif_score",
            function(object,
                     min_counts = 64,
+                    norm_type = c("average","rpm"),
                     average_normalization = c("yes","no"),
                     occurrence_threshold = 100, ...) standardGeneric("peptide_motif_score"))
 
@@ -41,9 +46,12 @@ setMethod("peptide_motif_score",
           signature(object = "ribosomeObj"),
           function(object,
                    min_counts = 64,
+                   norm_type = c("average","rpm"),
                    average_normalization = c("yes","no"),
                    occurrence_threshold = 100,...){
             average_normalization <- match.arg(average_normalization,c("yes","no"))
+            norm_type <- match.arg(norm_type,c("average","rpm"))
+            norm_type <- ifelse(norm_type == "average","rpm","average")
             # =====================================================================================
             # calculation
             # =====================================================================================
@@ -57,7 +65,8 @@ setMethod("peptide_motif_score",
             sp <- unique(normed_exp_file$sample)
             # x = 1
             purrr::map_df(seq_along(sp),function(x){
-              tmp <- subset(normed_exp_file,sample == sp[x])
+              tmp <- subset(normed_exp_file,sample == sp[x]) %>%
+                dplyr::select(-dplyr::all_of(norm_type))
 
               vroom::vroom_write(tmp,col_names = F,
                                  file = paste("peptide_motif/",sp[x],"_normed.txt",sep = ""))
@@ -134,6 +143,7 @@ setMethod("peptide_motif_score2",
                    window = 50,
                    occurrence_threshold = 100,...){
             norm_type <- match.arg(norm_type,c("rpm","average"))
+            norm_type <- ifelse(norm_type == "average","rpm","average")
             # =====================================================================================
             # output
             # =====================================================================================
@@ -147,11 +157,9 @@ setMethod("peptide_motif_score2",
             sp <- unique(normed_exp_file$sample)
             # x = 1
             purrr::map_df(seq_along(sp),function(x){
-              tmp <- subset(normed_exp_file,sample == sp[x])
+              tmp <- subset(normed_exp_file,sample == sp[x]) %>%
+                dplyr::select(-dplyr::all_of(norm_type))
 
-              if(norm_type == "rpm"){
-                tmp$counts <- (tmp$counts/sum(tmp$counts))*10^6
-              }
 
               vroom::vroom_write(tmp,col_names = F,
                                  file = paste("averaged_peptide_motif_data/",sp[x],"_normed.txt",sep = ""))

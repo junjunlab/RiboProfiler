@@ -5,15 +5,32 @@
 \alias{get_pausing_site,ribosomeObj-method}
 \title{Detect Pausing Sites}
 \usage{
-get_pausing_site(object, min_counts = 64, window = 1000, ...)
+get_pausing_site(
+  object,
+  min_counts = 64,
+  norm_type = c("average", "rpm"),
+  window = 1000,
+  ...
+)
 
-\S4method{get_pausing_site}{ribosomeObj}(object, min_counts = 64, window = 1000, ...)
+\S4method{get_pausing_site}{ribosomeObj}(
+  object,
+  min_counts = 64,
+  norm_type = c("average", "rpm"),
+  window = 1000,
+  ...
+)
 }
 \arguments{
 \item{object}{ribosomeObj object.}
 
 \item{min_counts}{An integer specifying the minimum counts threshold for
 considering a site as a pausing site. Default is \code{64}.}
+
+\item{norm_type}{The nomalization methods for ribosome density. "average" is calculated by
+the count at each position divided by mean density across cds region. "rpm"
+is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+Default is "average".}
 
 \item{window}{An integer specifying the window size for detecting pausing
 sites. Default is \code{1000}.}

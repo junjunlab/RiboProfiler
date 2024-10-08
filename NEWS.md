@@ -29,3 +29,8 @@ is using PausePred described with a sliding window. More details please refer to
 - Implementary with RiboSeqTools package functions to deal with selective ribosome profilling data.
 - Add **ribo_bam_to_bw** to transform ribo bamfiles to bigwig.
 - Add **XAM_version** for **ribo_bam_to_bw** and **pre_qc_data* to choose suitable XAM version to analysis.
+
+## RiboProfiler version 0.2.2 update
+- Add rpm and average normalization for **get_nomalized_counts**.
+- Add **periodicity_check** function which applied Discrete Fourier transform method to check periodicity.
+- Add **single_gene_plot** function to visualize single gene profile of ribosome data.

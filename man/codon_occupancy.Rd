@@ -8,6 +8,7 @@
 codon_occupancy(
   object,
   min_counts = 32,
+  norm_type = c("average", "rpm"),
   upstream_codon_exclude = 0,
   downstream_codon_exclude = 0,
   ...
@@ -16,6 +17,7 @@ codon_occupancy(
 \S4method{codon_occupancy}{ribosomeObj}(
   object,
   min_counts = 32,
+  norm_type = c("average", "rpm"),
   upstream_codon_exclude = 0,
   downstream_codon_exclude = 0,
   ...
@@ -26,6 +28,11 @@ codon_occupancy(
 
 \item{min_counts}{An integer specifying the minimum number of counts required for a transcript to be included
 in the analysis. Default is 32.}
+
+\item{norm_type}{The nomalization methods for ribosome density. "average" is calculated by
+the count at each position divided by mean density across cds region. "rpm"
+is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+Default is "average".}
 
 \item{upstream_codon_exclude}{An integer specifying the number of codons to exclude from the start of the coding sequence.
 Default is 5.}

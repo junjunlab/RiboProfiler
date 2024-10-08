@@ -58,6 +58,14 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
       dir.create("1.raw-data")
     }
 
+    # create out_file_dir
+    if(!is.null(out_file_dir)){
+      dir <- paste("1.raw-data/",out_file_dir,sep = "")
+      if(!dir.exists(dir)){
+        dir.create(dir)
+      }
+    }
+
     # check julia
     if(!is.null(julia_path)){
       options(JULIA_HOME = julia_path)

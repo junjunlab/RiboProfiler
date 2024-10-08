@@ -1,5 +1,5 @@
 globalVariables(c("abs_pos", "cds", "count", "pos", "sum_density" ,
-                  "sum_pi", "tid", "utr5", "wi", "x", "y"))
+                  "sum_pi", "tid", "utr5", "wi", "x", "y","rpm"))
 
 
 
@@ -9,6 +9,10 @@ globalVariables(c("abs_pos", "cds", "count", "pos", "sum_density" ,
 #'
 #' @param object ribosomeObj object.
 #' @param minCounts Integer. Minimum number of counts required in the CDS region to include a gene. Default is 64.
+#' @param norm_type The nomalization methods for ribosome density. "average" is calculated by
+#' the count at each position divided by mean density across cds region. "rpm"
+#' is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+#' Default is "average".
 #' @param group Character. A grouping variable for the output. Default is NULL, in which case the group is set to the current sample.
 #' @param ... Useless args.
 #'
@@ -27,6 +31,7 @@ globalVariables(c("abs_pos", "cds", "count", "pos", "sum_density" ,
 setGeneric("calculate_polarity",
            function(object,
                     minCounts = 64,
+                    norm_type = c("average","rpm"),
                     group = NULL, ...) standardGeneric("calculate_polarity"))
 
 
@@ -41,7 +46,11 @@ setMethod("calculate_polarity",
           signature(object = "ribosomeObj"),
           function(object,
                    minCounts = 64,
+                   norm_type = c("average","rpm"),
                    group = NULL,...){
+            norm_type <- match.arg(norm_type,c("average","rpm"))
+
+            # ==================================================================
             normed_file <- object@normalized.data
 
             # loop calculate polarity score
@@ -66,8 +75,7 @@ setMethod("calculate_polarity",
                 dplyr::left_join(y = gene_lenth,by = "trans_id") %>%
                 dplyr::filter(trans_pos >= utr5 & trans_pos <= utr5 + cds) %>%
                 dplyr::group_by(trans_id) %>%
-                dplyr::summarise(total_counts = sum(counts),
-                                 sum_density = sum(norm_exp)) %>%
+                dplyr::summarise(total_counts = sum(counts)) %>%
                 dplyr::filter(total_counts >= minCounts)
 
               # ========================================================================================
@@ -76,7 +84,7 @@ setMethod("calculate_polarity",
               dt <- tmp %>%
                 dplyr::filter(trans_id %in% total_density$trans_id) %>%
                 dplyr::group_by(trans_id,trans_pos) %>%
-                dplyr::summarise(density = sum(norm_exp)) %>%
+                dplyr::summarise(density = sum(!!rlang::sym(norm_type))) %>%
                 dplyr::left_join(y = gene_lenth,by = "trans_id") %>%
                 dplyr::rename(pos = trans_pos)
 

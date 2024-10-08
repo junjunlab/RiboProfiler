@@ -255,12 +255,12 @@ setMethod("enrichment_analysis",
                 tmp2 <- tmp %>%
                   dplyr::mutate(pos = dplyr::if_else(trans_pos%% 3 == 0,trans_pos/3,trans_pos%/%3 + 1)) %>%
                   dplyr::group_by(sample,gene_name,trans_id,type,pos) %>%
-                  dplyr::summarise(exp = sum(norm_exp),.groups = "drop")
+                  dplyr::summarise(exp = sum(rpm),.groups = "drop")
               }else{
                 tmp2 <- tmp %>%
                   dplyr::mutate(pos = trans_pos) %>%
                   dplyr::group_by(sample,gene_name,trans_id,type,pos) %>%
-                  dplyr::summarise(exp = sum(norm_exp),.groups = "drop")
+                  dplyr::summarise(exp = sum(rpm),.groups = "drop")
               }
 
               # calculate ratio of seRP/total
@@ -456,7 +456,7 @@ setMethod("enrichment_track_plot",
 
               # transform to codon pos
               ratio_df_new <- ratio_df %>%
-                dplyr::select(trans_pos,trans_id,sample,rep,group,norm_exp) %>%
+                dplyr::select(trans_pos,trans_id,sample,rep,group,rpm) %>%
                 dplyr::left_join(y = ganao,by = "trans_id") %>%
                 dplyr::filter(gene_name %in% select_gene & sample %in% select_sample)
 
@@ -479,14 +479,14 @@ setMethod("enrichment_track_plot",
                   dplyr::mutate(pos = dplyr::if_else(trans_pos%%3 == 0, trans_pos/3,trans_pos%/%3 + 1)) %>%
                   dplyr::filter(pos > 0 & pos < CDS_length) %>%
                   dplyr::group_by(sample,rep,group,gene_name,trans_id,pos) %>%
-                  dplyr::summarise(ratio = mean(norm_exp),.groups = "drop") %>%
+                  dplyr::summarise(ratio = mean(rpm),.groups = "drop") %>%
                   dplyr::rename(compare_group = sample)
               }else{
                 ratio_df_new <- ratio_df_new %>%
                   dplyr::filter(trans_pos > 0 & trans_pos < CDS_length) %>%
                   dplyr::rename(pos = trans_pos) %>%
                   dplyr::group_by(sample,rep,group,gene_name,trans_id,pos) %>%
-                  dplyr::summarise(ratio = mean(norm_exp),.groups = "drop") %>%
+                  dplyr::summarise(ratio = mean(rpm),.groups = "drop") %>%
                   dplyr::rename(compare_group = sample)
               }
             }

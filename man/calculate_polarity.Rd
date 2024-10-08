@@ -5,14 +5,31 @@
 \alias{calculate_polarity,ribosomeObj-method}
 \title{Calculate Polarity Scores}
 \usage{
-calculate_polarity(object, minCounts = 64, group = NULL, ...)
+calculate_polarity(
+  object,
+  minCounts = 64,
+  norm_type = c("average", "rpm"),
+  group = NULL,
+  ...
+)
 
-\S4method{calculate_polarity}{ribosomeObj}(object, minCounts = 64, group = NULL, ...)
+\S4method{calculate_polarity}{ribosomeObj}(
+  object,
+  minCounts = 64,
+  norm_type = c("average", "rpm"),
+  group = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{ribosomeObj object.}
 
 \item{minCounts}{Integer. Minimum number of counts required in the CDS region to include a gene. Default is 64.}
+
+\item{norm_type}{The nomalization methods for ribosome density. "average" is calculated by
+the count at each position divided by mean density across cds region. "rpm"
+is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+Default is "average".}
 
 \item{group}{Character. A grouping variable for the output. Default is NULL, in which case the group is set to the current sample.}
 

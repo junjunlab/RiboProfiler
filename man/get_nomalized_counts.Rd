@@ -9,7 +9,6 @@ get_nomalized_counts(
   object,
   exclude_upstreamCodon = 5,
   exclude_downstreamCodon = 5,
-  norm_type = c("average", "rpm"),
   ...
 )
 
@@ -17,7 +16,6 @@ get_nomalized_counts(
   object,
   exclude_upstreamCodon = 5,
   exclude_downstreamCodon = 5,
-  norm_type = c("average", "rpm"),
   ...
 )
 }
@@ -28,9 +26,8 @@ get_nomalized_counts(
 Default is 5}
 
 \item{exclude_downstreamCodon}{An integer specifying the number of codons to exclude from the end of the coding sequence.
-Default is 5.}
-
-\item{norm_type}{The nomalization methods for ribosome density. "average" is calculated by
+       Default is 5.
+The nomalization methods for ribosome density. "average" is calculated by
 the count at each position divided by mean density across cds region. "rpm"
 is calculated by the count at each position divided by the total counts and multiplied with 10^6.
 Default is "average".}

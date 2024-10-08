@@ -8,6 +8,7 @@
 peptide_motif_score(
   object,
   min_counts = 64,
+  norm_type = c("average", "rpm"),
   average_normalization = c("yes", "no"),
   occurrence_threshold = 100,
   ...
@@ -16,6 +17,7 @@ peptide_motif_score(
 \S4method{peptide_motif_score}{ribosomeObj}(
   object,
   min_counts = 64,
+  norm_type = c("average", "rpm"),
   average_normalization = c("yes", "no"),
   occurrence_threshold = 100,
   ...
@@ -25,6 +27,11 @@ peptide_motif_score(
 \item{object}{ribosomeObj object.}
 
 \item{min_counts}{Minimum counts to filter gene, default 64.}
+
+\item{norm_type}{The nomalization methods for ribosome density. "average" is calculated by
+the count at each position divided by mean density across cds region. "rpm"
+is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+Default is "average".}
 
 \item{average_normalization}{Whether do average normalization, yes or no.}
 

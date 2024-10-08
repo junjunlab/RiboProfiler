@@ -8,6 +8,10 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 #' @param object ribosomeObj object.
 #' @param min_counts An integer specifying the minimum number of counts required for a transcript to be included
 #'        in the analysis. Default is 32.
+#' @param norm_type The nomalization methods for ribosome density. "average" is calculated by
+#' the count at each position divided by mean density across cds region. "rpm"
+#' is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+#' Default is "average".
 #' @param upstream_codon_exclude An integer specifying the number of codons to exclude from the start of the coding sequence.
 #'        Default is 5.
 #' @param downstream_codon_exclude An integer specifying the number of codons to exclude from the end of the coding sequence.
@@ -31,6 +35,7 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 setGeneric("codon_occupancy",
            function(object,
                     min_counts = 32,
+                    norm_type = c("average","rpm"),
                     upstream_codon_exclude = 0,
                     downstream_codon_exclude = 0, ...) standardGeneric("codon_occupancy"))
 
@@ -46,8 +51,10 @@ setMethod("codon_occupancy",
           signature(object = "ribosomeObj"),
           function(object,
                    min_counts = 32,
+                   norm_type = c("average","rpm"),
                    upstream_codon_exclude = 0,
                    downstream_codon_exclude = 0,...){
+            norm_type <- match.arg(norm_type,c("average","rpm"))
             # ============================================================================
             # gene annotation
             # ============================================================================
@@ -95,7 +102,7 @@ setMethod("codon_occupancy",
                 # transpos trans_pos into codon pos
                 dplyr::mutate(codon_pos = dplyr::if_else(trans_pos%%3 == 0, trans_pos/3,trans_pos%/%3 + 1)) %>%
                 dplyr::group_by(trans_id,codon_pos) %>%
-                dplyr::summarise(codon_exp = mean(norm_exp)) %>%
+                dplyr::summarise(codon_exp = mean(!!rlang::sym(norm_type))) %>%
                 na.omit()
 
               # output

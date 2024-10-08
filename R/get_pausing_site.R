@@ -8,6 +8,10 @@
 #' @param object ribosomeObj object.
 #' @param min_counts An integer specifying the minimum counts threshold for
 #' considering a site as a pausing site. Default is \code{64}.
+#' @param norm_type The nomalization methods for ribosome density. "average" is calculated by
+#' the count at each position divided by mean density across cds region. "rpm"
+#' is calculated by the count at each position divided by the total counts and multiplied with 10^6.
+#' Default is "average".
 #' @param window An integer specifying the window size for detecting pausing
 #' sites. Default is \code{1000}.
 #' @param ... Useless args.
@@ -26,6 +30,7 @@
 setGeneric("get_pausing_site",
            function(object,
                     min_counts = 64,
+                    norm_type = c("average","rpm"),
                     window = 1000, ...) standardGeneric("get_pausing_site"))
 
 
@@ -40,7 +45,10 @@ setMethod("get_pausing_site",
           signature(object = "ribosomeObj"),
           function(object,
                    min_counts = 64,
+                   norm_type = c("average","rpm"),
                    window = 1000,...){
+            norm_type <- match.arg(norm_type,c("average","rpm"))
+            norm_type <- ifelse(norm_type == "average","rpm","average")
             # ========================================================================================
             # output normed data
             # ========================================================================================
@@ -50,7 +58,8 @@ setMethod("get_pausing_site",
             sp <- unique(normed_file$sample)
 
             lapply(seq_along(sp),function(x){
-              tmp <- subset(normed_file,sample == sp[x])
+              tmp <- subset(normed_file,sample == sp[x]) %>%
+                dplyr::select(-dplyr::all_of(norm_type))
 
               # output
               vroom::vroom_write(x = tmp,
