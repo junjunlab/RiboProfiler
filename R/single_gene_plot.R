@@ -121,7 +121,8 @@ setMethod("single_gene_plot",
             if(merge_rep == TRUE){
               g_df <- g_df %>%
                 dplyr::group_by(rep,group,gene_name,trans_id,pos) %>%
-                dplyr::summarise(RPM = mean(RPM),.groups = "drop")
+                dplyr::summarise(RPM = mean(RPM),.groups = "drop") |> 
+                  dplyr::rename(sample = rep)
             }
 
             # ==================================================================
