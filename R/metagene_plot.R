@@ -1,4 +1,4 @@
-globalVariables(c("avergae_exp", "group_name", "mean_exp","framesp","framest"))
+globalVariables(c("avergae_exp", "group_name", "mean_exp","framesp","framest","average"))
 
 #' Metagene Plot Generation
 #'

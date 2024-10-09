@@ -8,7 +8,7 @@ polarity_score_plot(
   polarity_score_df = NULL,
   aes_col_var = c("sample", "group"),
   linewidth = 1,
-  orf_col = "grey50",
+  orf_col = "grey",
   orf_pos = -0.2,
   orf_width = 4,
   text_pos = 0.1,
@@ -28,7 +28,7 @@ aesthetic mapping. It can be either 'sample' or 'group'. Default is 'sample'.}
 Default is 1.}
 
 \item{orf_col}{A character string specifying the color of the ORF line.
-Default is "grey50".}
+Default is "grey".}
 
 \item{orf_pos}{A numeric value specifying the position of the ORF line.
 Default is -0.2.}

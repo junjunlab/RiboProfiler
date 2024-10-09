@@ -79,7 +79,8 @@ setMethod("calculate_polarity",
                 dplyr::filter(trans_pos >= utr5 & trans_pos <= utr5 + cds) %>%
                 dplyr::group_by(trans_id) %>%
                 dplyr::summarise(total_counts = sum(counts)) %>%
-                dplyr::filter(total_counts >= minCounts)
+                dplyr::filter(total_counts >= minCounts,
+                              sum_density = sum(!!rlang::ensym(norm_type)))
 
               # ========================================================================================
               # polarity calculation
@@ -138,7 +139,7 @@ setMethod("calculate_polarity",
 #' @param linewidth A numeric value specifying the width of the density lines.
 #'   Default is 1.
 #' @param orf_col A character string specifying the color of the ORF line.
-#'   Default is "grey50".
+#'   Default is "grey".
 #' @param orf_pos A numeric value specifying the position of the ORF line.
 #'   Default is -0.2.
 #' @param orf_width A numeric value specifying the width of the ORF line.
@@ -159,7 +160,7 @@ setMethod("calculate_polarity",
 polarity_score_plot <- function(polarity_score_df = NULL,
                                 aes_col_var = c("sample","group"),
                                 linewidth = 1,
-                                orf_col = "grey50",
+                                orf_col = "grey",
                                 orf_pos = -0.2,
                                 orf_width = 4,
                                 text_pos = 0.1,
