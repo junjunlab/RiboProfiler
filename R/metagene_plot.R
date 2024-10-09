@@ -136,7 +136,7 @@ setMethod("metagene_plot",
               if(frame == TRUE){
                 tmp_1 <- tmp %>%
                   dplyr::group_by(sample,group,rep,!!vars_f[[1]],!!vars_f[[2]]) %>%
-                  dplyr::summarise(avergae_exp = sum(norm_exp)/trans_numbers) %>%
+                  dplyr::summarise(avergae_exp = sum(average)/trans_numbers) %>%
                   dplyr::filter(!!vars_f[[1]] >= relative_distance[1] & !!vars_f[[1]] <= relative_distance[2])
 
                 # add frame column
@@ -151,7 +151,7 @@ setMethod("metagene_plot",
               }else{
                 tmp_1 <- tmp %>%
                   dplyr::group_by(sample,group,rep,!!vars_f) %>%
-                  dplyr::summarise(avergae_exp = sum(norm_exp)/trans_numbers) %>%
+                  dplyr::summarise(avergae_exp = sum(average)/trans_numbers) %>%
                   dplyr::filter(!!vars_f >= relative_distance[1] & !!vars_f <= relative_distance[2])
               }
 
