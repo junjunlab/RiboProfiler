@@ -19,11 +19,11 @@ globalVariables(c("avergae_exp", "group_name", "mean_exp","framesp","framest"))
 #' @param collapse Logical, whether to collapse data across samples or not. Default is FALSE.
 #' @param frame Whether add in-frame information for metagene plot. Default is FALSE.
 #' @param frame_col Whether show geom_col instead of geom_line. Default is FALSE.
+#' @param merge_rep Whether merge replicates. Default is FALSE.
 #' @param geom_line_params List of additional parameters for geom_line, used to customize the line elements
 #'        of the plot. Default is an empty list().
 #' @param facet_wrap_params List of additional parameters for facet_wrap, used to customize the faceting
 #'        of the plot. Default is an empty list().
-#' @param merge_rep Whether merge replicates. Default is FALSE.
 #' @param ... Useless args.
 #'
 #' @return A ggplot object representing the metagene analysis plot.
@@ -78,6 +78,7 @@ setMethod("metagene_plot",
                    collapse = FALSE,
                    frame = FALSE,
                    frame_col = FALSE,
+                   merge_rep = FALSE,
                    geom_line_params = list(),
                    facet_wrap_params = list(),...){
             # check args

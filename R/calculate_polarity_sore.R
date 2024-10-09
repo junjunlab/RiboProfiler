@@ -13,6 +13,7 @@ globalVariables(c("abs_pos", "cds", "count", "pos", "sum_density" ,
 #' the count at each position divided by mean density across cds region. "rpm"
 #' is calculated by the count at each position divided by the total counts and multiplied with 10^6.
 #' Default is "average".
+#' @param merge_rep Whether merge replicates. Default is FALSE.
 #' @param group Character. A grouping variable for the output. Default is NULL, in which case the group is set to the current sample.
 #' @param ... Useless args.
 #'
@@ -32,6 +33,7 @@ setGeneric("calculate_polarity",
            function(object,
                     minCounts = 64,
                     norm_type = c("average","rpm"),
+                    merge_rep = FALSE,
                     group = NULL, ...) standardGeneric("calculate_polarity"))
 
 
@@ -47,6 +49,7 @@ setMethod("calculate_polarity",
           function(object,
                    minCounts = 64,
                    norm_type = c("average","rpm"),
+                   merge_rep = FALSE,
                    group = NULL,...){
             norm_type <- match.arg(norm_type,c("average","rpm"))
 
@@ -100,10 +103,18 @@ setMethod("calculate_polarity",
                               pi = density*wi/sum_density) |>
                 dplyr::group_by(gene_name) |>
                 dplyr::summarise(sum_pi = sum(pi)) |>
-                dplyr::mutate(group = group,sample = sp[x])
+                dplyr::mutate(group = group,sample = sp[x],rep = tmp$rep[1])
 
               return(ps_df)
             }) -> ps
+
+            # deal with replacates
+            if(merge_rep == TRUE){
+              ps <- ps |>
+                dplyr::group_by(group,rep,gene_name) |>
+                dplyr::summarise(sum_pi = mean(sum_pi)) |>
+                dplyr::rename(sample = rep)
+            }
 
             return(ps)
           }

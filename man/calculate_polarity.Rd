@@ -9,6 +9,7 @@ calculate_polarity(
   object,
   minCounts = 64,
   norm_type = c("average", "rpm"),
+  merge_rep = FALSE,
   group = NULL,
   ...
 )
@@ -17,6 +18,7 @@ calculate_polarity(
   object,
   minCounts = 64,
   norm_type = c("average", "rpm"),
+  merge_rep = FALSE,
   group = NULL,
   ...
 )
@@ -30,6 +32,8 @@ calculate_polarity(
 the count at each position divided by mean density across cds region. "rpm"
 is calculated by the count at each position divided by the total counts and multiplied with 10^6.
 Default is "average".}
+
+\item{merge_rep}{Whether merge replicates. Default is FALSE.}
 
 \item{group}{Character. A grouping variable for the output. Default is NULL, in which case the group is set to the current sample.}
 
