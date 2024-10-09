@@ -95,6 +95,8 @@ setMethod("calculate_polarity",
               # calculate wi and pi for each gene
               if(is.null(group)){
                 group <- sp[x]
+              }else{
+                group <- group[x]
               }
 
               ps_df <- dt |>
