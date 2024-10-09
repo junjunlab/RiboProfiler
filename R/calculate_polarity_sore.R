@@ -78,9 +78,9 @@ setMethod("calculate_polarity",
                 dplyr::left_join(y = gene_lenth,by = "trans_id") %>%
                 dplyr::filter(trans_pos >= utr5 & trans_pos <= utr5 + cds) %>%
                 dplyr::group_by(trans_id) %>%
-                dplyr::summarise(total_counts = sum(counts)) %>%
-                dplyr::filter(total_counts >= minCounts,
-                              sum_density = sum(!!rlang::ensym(norm_type)))
+                dplyr::summarise(total_counts = sum(counts),
+                                 sum_density = sum(!!rlang::ensym(norm_type))) %>%
+                dplyr::filter(total_counts >= minCounts)
 
               # ========================================================================================
               # polarity calculation
