@@ -119,6 +119,11 @@ pre_rna_coverage_data <- function(sam_file = NULL,
       outFile_tmp = paste("2.density-data/",out_file[x],sep = "")
 
       # bam total mapped reads
+      tryCatch(expr = Rsamtools::idxstatsBam(bam_file[x]),
+               error = function(e){
+                 Rsamtools::indexBam(files = bam_file)
+               })
+
       total_mapped_reads <- sum(Rsamtools::idxstatsBam(bam_file[x])$mapped)
 
       # params

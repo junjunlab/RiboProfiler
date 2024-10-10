@@ -1,5 +1,68 @@
 globalVariables(c("RPM"))
 
+
+#' Load RNA Coverage Data
+#'
+#' This function loads RNA coverage data from a specified file or files, processes it,
+#' and returns a data frame with additional metadata including sample name, replicate, and group information.
+#'
+#' @param trans_density_file A character vector of file names that contain RNA transcript density data.
+#' Each file should be in a tab-delimited format.
+#' @param sample_name A character vector of sample names corresponding to each file in `trans_density_file`.
+#' @param replicate A character vector indicating replicate information for each file in `trans_density_file`.
+#' Defaults to `NULL`, in which case replicate information is set to `NA`.
+#' @param group A character vector indicating the group to which each sample belongs.
+#' Defaults to `NULL`, in which case group information is set to `NA`.
+#'
+#' @return A data frame containing the processed RNA coverage data, with columns for transcript ID (`trans_id`),
+#' transcript position (`trans_pos`), reads per million (`RPM`), sample name (`sample`), replicate information (`rep`),
+#' group information (`group`), and a type column (`type`) indicating the data type as RNA.
+#'
+#' @details The function reads in tab-delimited RNA transcript density data from the specified files, filters
+#' out rows where RPM is zero, and adds metadata columns such as sample name, replicate, and group. The resulting
+#' data frame is created by binding the processed data from all input files together.
+#'
+#'
+#' @export
+load_rna_coverage <- function(trans_density_file = NULL,
+                              sample_name = NULL,
+                              replicate = NULL,
+                              group = NULL){
+  # x = 1
+  purrr::map_df(seq_along(trans_density_file),function(x){
+    rna_tmp <- vroom::vroom(paste('2.density-data/',trans_density_file[x],sep = ''),
+                            delim = "\t",show_col_types = FALSE,
+                            col_names = c('gene_name',"trans_id",'trans_pos','RPM')) %>%
+      dplyr::filter(RPM > 0) %>%
+      dplyr::select(-gene_name) %>%
+      dplyr::mutate(sample = sample_name[x],.before = trans_id) %>%
+      dplyr::mutate(type = "rna",.after = RPM)
+
+    if(!is.null(replicate)){
+      rna_tmp <- rna_tmp %>%
+        dplyr::mutate(rep = replicate[x],.after = sample)
+    }else{
+      rna_tmp <- rna_tmp %>%
+        dplyr::mutate(rep = NA,.after = sample)
+    }
+
+    if(!is.null(group)){
+      rna_tmp <- rna_tmp %>%
+        dplyr::mutate(group = group[x],.after = rep)
+    }else{
+      rna_tmp <- rna_tmp %>%
+        dplyr::mutate(group = NA,.after = rep)
+    }
+
+    return(rna_tmp)
+  }) -> rna_df
+}
+
+
+
+
+
+
 #' Single Gene Plot
 #'
 #' This method generates a plot showing ribosome positioning along a transcript for a specific gene.
@@ -11,6 +74,8 @@ globalVariables(c("RPM"))
 #' @param merge_rep Logical. If `TRUE`, replicates will be merged by taking the mean RPM. Default is `FALSE`.
 #' @param mode Character. Determines the unit of x-axis as "nt" for nucleotides
 #' or "codon" for codons/amino acids. Default is `"nt"`.
+#' @param rna_track_df A data frame contains RNA coverage data which from load_rna_coverage function.
+#' @param scale_RNA_factor Relative scale density size factor for RNA for better visualiztion. Default is 1.
 #' @param structure_position Character. Defines the position of transcript
 #' structure ("top" or "bottom"). Default is `"top"`.
 #' @param orf_col Color code for the coding sequence (CDS) region in the plot. Default is `"grey65"`.
@@ -40,6 +105,8 @@ setGeneric("single_gene_plot",
                     select_gene = NULL,
                     merge_rep = FALSE,
                     mode = c("nt","codon"),
+                    rna_track_df = NULL,
+                    scale_RNA_factor = 1,
                     structure_position = c("top","bottom"),
                     orf_col = "grey65",
                     utr_col = "grey",
@@ -67,6 +134,8 @@ setMethod("single_gene_plot",
                    select_gene = NULL,
                    merge_rep = FALSE,
                    mode = c("nt","codon"),
+                   rna_track_df = NULL,
+                   scale_RNA_factor = 1,
                    structure_position = c("top","bottom"),
                    orf_col = "grey65",
                    utr_col = "grey",
@@ -96,8 +165,18 @@ setMethod("single_gene_plot",
             g_df <- subset(norm_df,trans_id == ref$tid) %>%
               dplyr::group_by(sample,rep,group,trans_id,trans_pos) %>%
               dplyr::summarise(RPM = sum(rpm),.groups = "drop") %>%
-              # dplyr::filter(trans_pos > 0) %>%
-              dplyr::left_join(y = ref,by = c("trans_id" = "tid")) %>%
+              dplyr::mutate(type = "ribo",.after = RPM)
+
+            # check RNA track
+            if(!is.null(rna_track_df)){
+              ft_rna_df <- subset(rna_track_df,trans_id == ref$tid & sample %in% unique(g_df$sample)) %>%
+                dplyr::mutate(RPM = scale_RNA_factor*RPM)
+
+              g_df <- rbind(g_df,ft_rna_df)
+            }
+
+            g_df <- g_df
+            dplyr::left_join(y = ref,by = c("trans_id" = "tid")) %>%
               dplyr::mutate(pos = trans_pos - utr5)
 
             # check mode
@@ -105,7 +184,7 @@ setMethod("single_gene_plot",
               g_df <- g_df %>%
                 dplyr::filter(pos > 0) %>%
                 dplyr::mutate(pos = ifelse(pos %% 3 == 0,pos/3,pos%/%3 + 1)) %>%
-                dplyr::group_by(sample,rep,group,gene_name,trans_id,pos) %>%
+                dplyr::group_by(sample,rep,group,type,gene_name,trans_id,pos) %>%
                 dplyr::summarise(RPM = sum(RPM),.groups = "drop")
 
               xleft <- ifelse(-(ref$utr5 - 1) %% 3 == 0,-(ref$utr5 - 1)/3,-(ref$utr5 - 1)%/%3 + 1)
@@ -120,20 +199,38 @@ setMethod("single_gene_plot",
             # ==================================================================
             if(merge_rep == TRUE){
               g_df <- g_df %>%
-                dplyr::group_by(rep,group,gene_name,trans_id,pos) %>%
-                dplyr::summarise(RPM = mean(RPM),.groups = "drop") |> 
-                  dplyr::rename(sample = rep)
+                dplyr::group_by(rep,group,type,gene_name,trans_id,pos) %>%
+                dplyr::summarise(RPM = mean(RPM),.groups = "drop") |>
+                dplyr::rename(sample = rep)
             }
 
             # ==================================================================
             # main plot
             # ==================================================================
+            if(!is.null(rna_track_df)){
+              col_rna_layer <- do.call(geom_col,modifyList(list(data = subset(g_df,type == "rna"),
+                                                                mapping = aes(x = pos,y = RPM,fill = type),
+                                                                width = 1),
+                                                           geom_col_params))
+
+              col_ribo_layer <- do.call(geom_col,modifyList(list(data = subset(g_df,type == "ribo"),
+                                                                 mapping = aes(x = pos,y = RPM,fill = type),
+                                                                 width = 1),
+                                                            geom_col_params))
+            }else{
+              col_ribo_layer <- do.call(geom_col,modifyList(list(data = g_df,
+                                                                 mapping = aes(x = pos,y = RPM,fill = type),
+                                                                 width = 1),
+                                                            geom_col_params))
+
+              col_rna_layer <- NULL
+            }
+
             pmian <-
-              ggplot(g_df) +
+              ggplot() +
               # geom_col(aes(x = pos,y = RPM),width = 1) +
-              do.call(geom_col,modifyList(list(mapping = aes(x = pos,y = RPM),
-                                               width = 1),
-                                          geom_col_params)) +
+              col_rna_layer +
+              col_ribo_layer +
               facet_grid(cols = vars(gene_name),rows = vars(sample)) +
               theme_bw() +
               theme(axis.text = element_text(colour = "black"),

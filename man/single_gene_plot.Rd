@@ -10,6 +10,8 @@ single_gene_plot(
   select_gene = NULL,
   merge_rep = FALSE,
   mode = c("nt", "codon"),
+  rna_track_df = NULL,
+  scale_RNA_factor = 1,
   structure_position = c("top", "bottom"),
   orf_col = "grey65",
   utr_col = "grey",
@@ -28,6 +30,8 @@ single_gene_plot(
   select_gene = NULL,
   merge_rep = FALSE,
   mode = c("nt", "codon"),
+  rna_track_df = NULL,
+  scale_RNA_factor = 1,
   structure_position = c("top", "bottom"),
   orf_col = "grey65",
   utr_col = "grey",
@@ -52,6 +56,10 @@ Must correspond to a gene name in the provided object.}
 
 \item{mode}{Character. Determines the unit of x-axis as "nt" for nucleotides
 or "codon" for codons/amino acids. Default is `"nt"`.}
+
+\item{rna_track_df}{A data frame contains RNA coverage data which from load_rna_coverage function.}
+
+\item{scale_RNA_factor}{Relative scale density size factor for RNA for better visualiztion. Default is 1.}
 
 \item{structure_position}{Character. Defines the position of transcript
 structure ("top" or "bottom"). Default is `"top"`.}
