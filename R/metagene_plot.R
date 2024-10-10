@@ -216,8 +216,14 @@ setMethod("metagene_plot",
             # deal with replicates
 
             if(merge_rep == TRUE){
+              if(frame == T){
+                group_columns <- c("rep", "pos", "mean_exp","frame")
+              }else{
+                group_columns <- c("rep", "pos", "mean_exp")
+              }
+
               df_plot <- df_final %>%
-                dplyr::group_by(rep,pos,mean_exp) %>%
+                dplyr::group_by(!!!rlang::syms(group_columns)) %>%
                 dplyr::summarise(mean_exp = mean(mean_exp)) %>%
                 dplyr::mutate(group_name = "Metagene analysis")
 
@@ -230,17 +236,25 @@ setMethod("metagene_plot",
                 facet_layer <- do.call(facet_wrap,modifyList(list(facets = vars(group_name)),
                                                              facet_wrap_params))
               }else{
-                if(frame_col == TRUE){
-                  line_layer <- do.call(geom_col,modifyList(list(mapping = aes(x = pos,y = mean_exp,
-                                                                               fill = factor(frame)),
-                                                                 width = 0.5,
-                                                                 position = position_dodge2()),
-                                                            geom_line_params))
+                if(frame == TRUE){
+                  if(frame_col == TRUE){
+                    line_layer <- do.call(geom_col,modifyList(list(mapping = aes(x = pos,y = mean_exp,
+                                                                                 fill = factor(frame)),
+                                                                   width = 0.5,
+                                                                   position = position_dodge2()),
+                                                              geom_line_params))
+                  }else{
+                    line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp,
+                                                                                  color = factor(frame)),
+                                                                    linewidth = linewidth),
+                                                               geom_line_params))
+                  }
                 }else{
                   line_layer <- do.call(geom_line,modifyList(list(mapping = aes(x = pos,y = mean_exp),
                                                                   linewidth = linewidth),
                                                              geom_line_params))
                 }
+
 
 
                 facet_layer <- do.call(facet_wrap,modifyList(list(facets = vars(rep)),

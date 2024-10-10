@@ -18,14 +18,25 @@ setMethod("subdata",
             raw_df <- object@raw.counts
             shift_df <- object@shifted.data
             norm_df <- object@normalized.data
+            enrich_df <- object@enriched.data
 
             raw_df_ft <- base::subset(x = raw_df,...)
-            raw_shift_df <- base::subset(x = shift_df,...)
-            raw_norm_df <- base::subset(x = norm_df,...)
-
             object@raw.counts <- raw_df_ft
-            object@shifted.data <- raw_shift_df
-            object@normalized.data <- raw_norm_df
+
+            if(nrow(shift_df) > 0){
+              raw_shift_df <- base::subset(x = shift_df,...)
+              object@shifted.data <- raw_shift_df
+            }
+
+            if(nrow(norm_df) > 0){
+              raw_norm_df <- base::subset(x = norm_df,...)
+              object@normalized.data <- raw_norm_df
+            }
+
+            if(nrow(enrich_df) > 0){
+              raw_enrich_df <- base::subset(x = enrich_df,...)
+              object@enriched.data <- raw_enrich_df
+            }
 
             return(object)
           }

@@ -214,7 +214,7 @@ codon_occupancy_plot <- function(codon_occupancy_file = NULL,
   # check type
   # ============================================================================
   ylab <- paste("Difference of codon occupancy","\n",
-                "(",compare_var[1]," vs ",compare_var[2],")",sep = "")
+                "(",compare_var[1]," VS ",compare_var[2],")",sep = "")
 
   if(codon_type == "amino"){
     # prepare amino acids annotations

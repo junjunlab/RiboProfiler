@@ -98,7 +98,7 @@ setMethod("footprint_heatmap",
             # filter read length
             qc_data <- object@raw.counts
             qc_data <- qc_data |>
-              dplyr::mutate(length = as.numeric(as.character(length))) |>
+              dplyr::mutate(length = as.numeric(as.character(len))) |>
               dplyr::filter(length >= read_length[1] & length <= read_length[2])
 
             # ==========================================================================

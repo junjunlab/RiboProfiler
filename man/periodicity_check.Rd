@@ -10,6 +10,7 @@ periodicity_check(
   read_length = c(27, 30),
   relative_dist = c(0, 150),
   period_max = 10,
+  merge_rep = FALSE,
   ...
 )
 
@@ -18,6 +19,7 @@ periodicity_check(
   read_length = c(27, 30),
   relative_dist = c(0, 150),
   period_max = 10,
+  merge_rep = FALSE,
   ...
 )
 }
@@ -32,6 +34,8 @@ Default is c(0, 150).}
 
 \item{period_max}{A numeric value indicating the maximum period (in nucleotides) to display in the plot.
 Default is 10.}
+
+\item{merge_rep}{Whether merge replicates. Default is FALSE.}
 
 \item{...}{Additional arguments to be passed to or from other methods.}
 }

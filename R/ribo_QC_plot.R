@@ -72,25 +72,25 @@ setMethod("qc_plot",
               qc_data <- object@shifted.data
             }
 
-            type <- match.arg(type,c("length","length_frame","feature","frame"))
+            type <- match.arg(type,c("len","length_frame","feature","frame"))
             if(type == "length"){
-              len <- qc_data %>% group_by(group,sample,length) %>%
+              len <- qc_data %>% group_by(group,sample,len) %>%
                 dplyr::summarise(num = sum(counts))
 
               layer_tmp <- pmain +
                 do.call(geom_col,
                         modifyList(list(data = len,
-                                        mapping = aes(x = length,y = num/1000),
+                                        mapping = aes(x = len,y = num/1000),
                                         fill = "#A4BE7B",width = 0.6),
                                    geom_col_list))
             }else if(type == "length_frame"){
-              frame <- qc_data %>% group_by(group,sample,length,framest) %>%
+              frame <- qc_data %>% group_by(group,sample,len,framest) %>%
                 dplyr::summarise(num = sum(counts))
 
               layer_tmp <- pmain +
                 do.call(geom_col,
                         modifyList(list(data = frame,
-                                        mapping = aes(x = length,y = num/1000,fill = factor(framest)),
+                                        mapping = aes(x = len,y = num/1000,fill = factor(framest)),
                                         position = position_dodge2()),
                                    geom_col_list)) +
                 scale_fill_brewer(palette = 'Greens',name = '',direction = -1,

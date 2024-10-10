@@ -13,6 +13,7 @@ globalVariables(c("Amplitude", "Period"))
 #'   Default is c(0, 150).
 #' @param period_max A numeric value indicating the maximum period (in nucleotides) to display in the plot.
 #'   Default is 10.
+#' @param merge_rep Whether merge replicates. Default is FALSE.
 #' @param ... Additional arguments to be passed to or from other methods.
 #'
 #' @return A ggplot object displaying the amplitude of different periods across samples and read lengths.
@@ -27,7 +28,8 @@ setGeneric("periodicity_check",
            function(object,
                     read_length = c(27,30),
                     relative_dist = c(0,150),
-                    period_max = 10,...) standardGeneric("periodicity_check"))
+                    period_max = 10,
+                    merge_rep = FALSE,...) standardGeneric("periodicity_check"))
 
 
 
@@ -42,6 +44,7 @@ setMethod("periodicity_check",
                    read_length = c(27,30),
                    relative_dist = c(0,150),
                    period_max = 10,
+                   merge_rep = FALSE,
                    ...){
 
             raw <- object@raw.counts
@@ -54,15 +57,15 @@ setMethod("periodicity_check",
               tmp <- subset(raw,sample == sp[x])
 
               anno_raw <- tmp %>%
-                dplyr::filter(length %in% c(read_length[1]:read_length[2])) %>%
-                dplyr::group_by(relst,length) %>%
+                dplyr::filter(len %in% c(read_length[1]:read_length[2])) %>%
+                dplyr::group_by(relst,len) %>%
                 dplyr::summarise(nc = sum(counts)) %>%
                 dplyr::filter(relst >= relative_dist[1] & relst <= relative_dist[2])
 
               # loop for length
-              len <- unique(anno_raw$length)
+              len <- unique(anno_raw$len)
               purrr::map_df(seq_along(len),function(l){
-                tmp2 <- subset(anno_raw,length == len[l])
+                tmp2 <- subset(anno_raw,len == len[l])
 
                 # Discrete Fourier transform of reads
                 freq_domain_data <- fft(tmp2$nc)
@@ -75,6 +78,7 @@ setMethod("periodicity_check",
                 df <- data.frame(Period = periods,
                                  Amplitude = power_spectrum[2:(N/2 + 1)],
                                  length = len[l],
+                                 rep = tmp$rep[1],
                                  sample = sp[x]) %>%
                   dplyr::filter(Period <= period_max)
 
@@ -83,6 +87,14 @@ setMethod("periodicity_check",
               return(tmp_df)
             }) -> fft_res
 
+            # ==================================================================
+            # merge replicates
+            if(merge_rep == TRUE){
+              fft_res <- fft_res %>%
+                dplyr::group_by(Period,length,rep) %>%
+                dplyr::summarise(Amplitude = mean(Amplitude)) %>%
+                dplyr::rename(sample = rep)
+            }
 
             # ==================================================================
             # plot

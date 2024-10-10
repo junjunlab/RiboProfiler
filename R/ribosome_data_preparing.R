@@ -146,7 +146,7 @@ pre_qc_data <- function(mapping_type = c("genome","transcriptome"),
   plyr::ldply(seq_along(file),function(x){
     tmp <- vroom::vroom(file = file[x],col_names = F,show_col_types = FALSE)
 
-    colnames(tmp) <- c('length','framest','relst','framesp','relsp',
+    colnames(tmp) <- c('len','framest','relst','framesp','relsp',
                        'feature','trans_pos','trans_id','counts')
 
     # add sample

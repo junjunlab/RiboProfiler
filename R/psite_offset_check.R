@@ -47,28 +47,28 @@ setMethod("psite_offset_check",
             # process data
             # ===================================================================================
             qc_data <- object@raw.counts
-            qc_data$length <- as.numeric(as.character(qc_data$length))
+            qc_data$len <- as.numeric(as.character(qc_data$len))
 
             df_ft <- qc_data |>
               dplyr::filter(relst >= relative_distance[1] & relst <= relative_distance[2]) |>
-              dplyr::filter(length >= read_length[1] & length <= read_length[2]) |>
-              dplyr::group_by(sample,length,relst) |>
+              dplyr::filter(len >= read_length[1] & len <= read_length[2]) |>
+              dplyr::group_by(sample,len,relst) |>
               dplyr::summarise(count = sum(counts))
 
             # get max peak position
             df_maxht <- df_ft |>
-              dplyr::group_by(sample,length) |>
+              dplyr::group_by(sample,len) |>
               dplyr::summarise(maxpos = max(count)) |>
-              dplyr::left_join(y = df_ft,by = c("sample","length"),
+              dplyr::left_join(y = df_ft,by = c("sample","len"),
                                multiple = "all") |>
               dplyr::filter(maxpos == count)
 
             # retain only one offset
             purrr::map_df(unique(df_maxht$sample),function(x){
               tmp <- subset(df_maxht,sample == x)
-              len <- unique(tmp$length)
+              len <- unique(tmp$len)
               purrr::map_df(seq_along(len),function(x){
-                tmp2 <- subset(tmp,length == len[x]) %>%
+                tmp2 <- subset(tmp,len == len[x]) %>%
                   dplyr::arrange(relst) %>%
                   head(n = 1)
                 return(tmp2)
@@ -78,11 +78,11 @@ setMethod("psite_offset_check",
 
             # summarise offsets
             summary_offset <-
-              plyr::ddply(df_maxht[,c("sample","length","relst")],
+              plyr::ddply(df_maxht[,c("sample","len","relst")],
                           plyr::.(sample), dplyr::mutate,
-                          readLengths = paste(length, collapse = ","),
+                          readLengths = paste(len, collapse = ","),
                           Offsets = paste(relst, collapse = ",")) |>
-              dplyr::select(-length,-relst)|> unique() |>
+              dplyr::select(-len,-relst)|> unique() |>
               dplyr::mutate(bamFiles = sample,bamLegends = sample)
 
             # ===================================================================================
@@ -107,7 +107,7 @@ setMethod("psite_offset_check",
                     panel.grid = element_blank(),
                     strip.text = element_text(face = "bold.italic",size = rel(1))) +
               # facet_grid(length~sample,scales = "free_y") +
-              ggh4x::facet_grid2(length~sample,scales = "free",independent = "y") +
+              ggh4x::facet_grid2(len~sample,scales = "free",independent = "y") +
               ylab("Read counts") +
               xlab("Distance of 5'end to start codon (nt)")
 

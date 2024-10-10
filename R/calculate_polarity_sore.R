@@ -1,5 +1,5 @@
 globalVariables(c("abs_pos", "cds", "count", "pos", "sum_density" ,
-                  "sum_pi", "tid", "utr5", "wi", "x", "y","rpm"))
+                  "sum_pi", "tid", "utr5", "wi", "x", "y","rpm","len"))
 
 
 
