@@ -175,8 +175,8 @@ setMethod("single_gene_plot",
               g_df <- rbind(g_df,ft_rna_df)
             }
 
-            g_df <- g_df
-            dplyr::left_join(y = ref,by = c("trans_id" = "tid")) %>%
+            g_df <- g_df %>%
+              dplyr::left_join(y = ref,by = c("trans_id" = "tid")) %>%
               dplyr::mutate(pos = trans_pos - utr5)
 
             # check mode
