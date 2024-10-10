@@ -10,7 +10,7 @@ single_gene_plot(
   select_gene = NULL,
   merge_rep = FALSE,
   mode = c("nt", "codon"),
-  aes_col = c("sample", "type"),
+  aes_col = c("grey", "red"),
   rna_track_df = NULL,
   scale_RNA_factor = 1,
   structure_position = c("top", "bottom"),
@@ -31,7 +31,7 @@ single_gene_plot(
   select_gene = NULL,
   merge_rep = FALSE,
   mode = c("nt", "codon"),
-  aes_col = c("sample", "type"),
+  aes_col = c("grey", "red"),
   rna_track_df = NULL,
   scale_RNA_factor = 1,
   structure_position = c("top", "bottom"),
@@ -59,7 +59,7 @@ Must correspond to a gene name in the provided object.}
 \item{mode}{Character. Determines the unit of x-axis as "nt" for nucleotides
 or "codon" for codons/amino acids. Default is `"nt"`.}
 
-\item{aes_col}{Aesthetic var for fill color, "sample" or "type".}
+\item{aes_col}{Fill color for RNA and Ribo track, c("grey","red").}
 
 \item{rna_track_df}{A data frame contains RNA coverage data which from load_rna_coverage function.}
 
