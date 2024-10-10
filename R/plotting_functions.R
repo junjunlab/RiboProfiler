@@ -393,12 +393,23 @@ track_plot <- function(signal_data = NULL,
 
   # draw track
   if(plot_type == "translatome"){
+    if("rna" %in% unique(signal_data$type)){
+      rna_layer <- do.call(geom_col,modifyList(list(data = subset(signal_data,type == "rna"),
+                                                    mapping = aes(x = transpos,y = density,
+                                                                  fill = type),
+                                                    width = 1),
+                                               geom_col_params))
+    }else{
+      rna_layer <- NULL
+    }
+
     p <- ggplot() +
       # geom_col(data = signal_data,
       #          mapping = aes(x = transpos,y = density,
       #                        fill = type),
       #          width = 1) +
-      do.call(geom_col,modifyList(list(data = signal_data,
+      rna_layer +
+      do.call(geom_col,modifyList(list(data = subset(signal_data,type == "ribo"),
                                        mapping = aes(x = transpos,y = density,
                                                      fill = type),
                                        width = 1),

@@ -1,3 +1,5 @@
+import pyfastx
+
 def codonOccupancy(cds_fasta_file,codon_pos_exp_file,output_file):
     ######################################################################################################################
     # 1_prepare 64 codons Dict
@@ -56,7 +58,6 @@ def codonOccupancy(cds_fasta_file,codon_pos_exp_file,output_file):
     ######################################################################################################################
     # 1_prepare 64 codons Dict
     ######################################################################################################################
-    import pyfastx
 
     # load cds fasta
     fa = pyfastx.Fasta(cds_fasta_file)
@@ -76,17 +77,16 @@ def codonOccupancy(cds_fasta_file,codon_pos_exp_file,output_file):
                     codon_exp_dict[codon_seq] = [float(exp),1]
                 
     # get total codons
-    total_codons = 0
-    total_exp = 0
-    for key,val in codon_exp_dict.items():
-        total_codons += val[1]
-        total_exp += val[0]
+    # total_codons = 0
+    # total_exp = 0
+    # for key,val in codon_exp_dict.items():
+    #     total_codons += val[1]
+    #     total_exp += val[0]
     
     # output
     out_file = open(output_file, 'w')
     for key,val in codon_exp_dict.items():
-        # norm_val = (val[0]/(val[1]/total_codons))/1000000
-        norm_val = (val[0]/total_exp)
+        norm_val = val[0]
         anno = codonDict[key]
         out_file.write("\t".join([key,anno[0],anno[1],str(norm_val)]) + '\n')
     out_file.close()
