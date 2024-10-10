@@ -231,7 +231,7 @@ setMethod("single_gene_plot",
             }
 
             pmian <-
-              ggplot(mapping = aes(fill = get(aes_col))) +
+              ggplot(mapping = aes(fill = !!rlang::sym(aes_col))) +
               # geom_col(aes(x = pos,y = RPM),width = 1) +
               col_rna_layer +
               col_ribo_layer +
