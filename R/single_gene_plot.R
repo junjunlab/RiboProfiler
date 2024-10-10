@@ -74,7 +74,7 @@ load_rna_coverage <- function(trans_density_file = NULL,
 #' @param merge_rep Logical. If `TRUE`, replicates will be merged by taking the mean RPM. Default is `FALSE`.
 #' @param mode Character. Determines the unit of x-axis as "nt" for nucleotides
 #' or "codon" for codons/amino acids. Default is `"nt"`.
-#' @param aes_col Aesthetic var for fill color, "sample" or "type".
+#' @param aes_col Fill color for RNA and Ribo track, c("grey","red").
 #' @param rna_track_df A data frame contains RNA coverage data which from load_rna_coverage function.
 #' @param scale_RNA_factor Relative scale density size factor for RNA for better visualiztion. Default is 1.
 #' @param structure_position Character. Defines the position of transcript
@@ -106,7 +106,7 @@ setGeneric("single_gene_plot",
                     select_gene = NULL,
                     merge_rep = FALSE,
                     mode = c("nt","codon"),
-                    aes_col = c("sample","type"),
+                    aes_col = c("grey","red"),
                     rna_track_df = NULL,
                     scale_RNA_factor = 1,
                     structure_position = c("top","bottom"),
@@ -136,7 +136,7 @@ setMethod("single_gene_plot",
                    select_gene = NULL,
                    merge_rep = FALSE,
                    mode = c("nt","codon"),
-                   aes_col = c("sample","type"),
+                   aes_col = c("grey","red"),
                    rna_track_df = NULL,
                    scale_RNA_factor = 1,
                    structure_position = c("top","bottom"),
@@ -152,7 +152,6 @@ setMethod("single_gene_plot",
                    ...){
             mode <- match.arg(mode,c("nt","codon"))
             structure_position <- match.arg(structure_position,c("top","bottom"))
-            aes_col <- match.arg(aes_col,c("sample","type"))
             # ==================================================================
             # prepare data
             # ==================================================================
@@ -214,16 +213,18 @@ setMethod("single_gene_plot",
             if(!is.null(rna_track_df)){
               col_rna_layer <- do.call(geom_col,modifyList(list(data = subset(g_df,type == "rna"),
                                                                 mapping = aes(x = pos,y = RPM),
-                                                                width = 1),
+                                                                width = 1,
+                                                                fill = aes_col[1]),
                                                            geom_col_params))
 
               col_ribo_layer <- do.call(geom_col,modifyList(list(data = subset(g_df,type == "ribo"),
                                                                  mapping = aes(x = pos,y = RPM),
-                                                                 width = 1),
+                                                                 width = 1,
+                                                                 fill = aes_col[2]),
                                                             geom_col_params))
             }else{
               col_ribo_layer <- do.call(geom_col,modifyList(list(data = g_df,
-                                                                 mapping = aes(x = pos,y = RPM),
+                                                                 mapping = aes(x = pos,y = RPM,fill = sample),
                                                                  width = 1),
                                                             geom_col_params))
 
@@ -231,7 +232,7 @@ setMethod("single_gene_plot",
             }
 
             pmian <-
-              ggplot(mapping = aes(fill = !!rlang::sym(aes_col))) +
+              ggplot() +
               # geom_col(aes(x = pos,y = RPM),width = 1) +
               col_rna_layer +
               col_ribo_layer +
