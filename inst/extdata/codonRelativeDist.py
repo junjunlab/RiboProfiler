@@ -15,7 +15,7 @@ def codonRelativeDist(cds_fasta_file,codon_pos_exp_file,output_file):
         if len(seq) % 3 == 0:
             codons = [seq[(i-1):(i+2)] for i in range(1, seq_len, 3)]
             len_codons = len(codons)
-            rel_pos = [(codons[i-1],round(i/len_codons,3),0) for i in range(1,len_codons + 1)]
+            rel_pos = [(codons[i-1],round(i/len_codons,5),0) for i in range(1,len_codons + 1)]
             # save
             codon_dist[tid] = rel_pos
             
