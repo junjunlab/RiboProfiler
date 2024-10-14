@@ -72,14 +72,14 @@ setMethod("qc_plot",
               qc_data <- object@shifted.data
             }
 
-            type <- match.arg(type,c("len","length_frame","feature","frame"))
+            type <- match.arg(type,c("length","length_frame","feature","frame"))
             if(type == "length"){
-              len <- qc_data %>% group_by(group,sample,len) %>%
+              length <- qc_data %>% group_by(group,sample,len) %>%
                 dplyr::summarise(num = sum(counts))
 
               layer_tmp <- pmain +
                 do.call(geom_col,
-                        modifyList(list(data = len,
+                        modifyList(list(data = length,
                                         mapping = aes(x = len,y = num/1000),
                                         fill = "#A4BE7B",width = 0.6),
                                    geom_col_list))

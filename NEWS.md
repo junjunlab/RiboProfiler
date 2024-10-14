@@ -34,3 +34,8 @@ is using PausePred described with a sliding window. More details please refer to
 - Add rpm and average normalization for **get_nomalized_counts**.
 - Add **periodicity_check** function which applied Discrete Fourier transform method to check periodicity.
 - Add **single_gene_plot** function to visualize single gene profile of ribosome data.
+
+## RiboProfiler version 0.2.3 update
+- Add **codonRelativeDist.py** to calculate relative codon occupancy along transcript.
+- Add **bam_to_bw* to convert bam files to bigwigs.
+- Add **get_counts_from_bam** to extract counts for ribo or rna bam files.

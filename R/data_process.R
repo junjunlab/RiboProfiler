@@ -367,116 +367,116 @@ load_track_data <- function(mapping_type = c("genome","transcriptome"),
 
 
 
-#' Preprocess SAM files to calculate count and TPM data
+#' #' Preprocess SAM files to calculate count and TPM data
+#' #'
+#' #' This function takes SAM files as input, processes it using JuliaCall package
+#' #' and generates count and TPM data.
+#' #'
+#' #' @param sam_file A character vector of SAM file paths.
+#' #' @param out_file A character vector of output file names.
+#' #' @param type Specifies the type of the input file. Default is 'ribo'.
+#' #' @return NULL
+#' #' @examples
+#' #' \dontrun{
+#' #' pre_count_tpm_data(sam_file = c("path/to/samfile1.sam","path/to/samfile2.sam"),
+#' #'                    out_file = c("output1.txt","output2.txt"),
+#' #'                    type = "rna")
+#' #' }
+#' #'
+#' #' @export
+#' pre_count_tpm_data <- function(sam_file = NULL,
+#'                                out_file = NULL,
+#'                                type = c("ribo","rna")){
+#'   type <- match.arg(type,c("ribo","rna"))
 #'
-#' This function takes SAM files as input, processes it using JuliaCall package
-#' and generates count and TPM data.
+#'   if(!dir.exists("4.expression-data")){
+#'     dir.create("4.expression-data")
+#'   }
 #'
-#' @param sam_file A character vector of SAM file paths.
-#' @param out_file A character vector of output file names.
-#' @param type Specifies the type of the input file. Default is 'ribo'.
-#' @return NULL
-#' @examples
-#' \dontrun{
-#' pre_count_tpm_data(sam_file = c("path/to/samfile1.sam","path/to/samfile2.sam"),
-#'                    out_file = c("output1.txt","output2.txt"),
-#'                    type = "rna")
+#'   JuliaCall::julia_setup(installJulia = TRUE)
+#'
+#'   JuliaCall::julia_library("XAM")
+#'
+#'   script_path <- paste0('include("',
+#'                         system.file("extdata", "CalculateCountTPM.jl",
+#'                                     package = "RiboProfiler"),
+#'                         '")',collapse = "")
+#'
+#'   # choose function
+#'   CalculateCountTPM <- JuliaCall::julia_eval(script_path)
+#'
+#'   # excute function
+#'   lapply(seq_along(sam_file), function(x){
+#'     outFile_tmp = paste("4.expression-data/",out_file[x],sep = "")
+#'     CalculateCountTPM(inputFile = sam_file[x],
+#'                       outputFile = outFile_tmp,
+#'                       inputType = type)
+#'     message(paste(sam_file[x]," has been processed!",sep = ""))
+#'   }) -> tmp
+#'
+#'   return(NULL)
 #' }
+
+
+#' #' Load expression data from text files
+#' #'
+#' #' This function loads gene expression data from text files in a specified
+#' #' directory. It returns both count and TPM (transcripts per million) matrices
+#' #' for all samples.
+#' #'
+#' #' @param sample_name A character vector containing sample names. If NULL, the
+#' #' function will use the file names as sample names.
+#' #'
+#' #' @return A list containing two matrices:
+#' #' \describe{
+#' #'   \item{count_matrix}{A matrix of gene expression counts for all samples.}
+#' #'   \item{tpm_matrix}{A matrix of gene expression TPM values for all samples.}
+#' #' }
+#' #'
+#' #' @export
+#' load_expression_data <- function(sample_name = NULL){
+#'   # load data
+#'   file <- list.files('4.expression-data/','.txt')
+#'   message("Expression input files: ")
+#'   message(paste0(file,sep = "\n"))
 #'
-#' @export
-pre_count_tpm_data <- function(sam_file = NULL,
-                               out_file = NULL,
-                               type = c("ribo","rna")){
-  type <- match.arg(type,c("ribo","rna"))
-
-  if(!dir.exists("4.expression-data")){
-    dir.create("4.expression-data")
-  }
-
-  JuliaCall::julia_setup(installJulia = TRUE)
-
-  JuliaCall::julia_library("XAM")
-
-  script_path <- paste0('include("',
-                        system.file("extdata", "CalculateCountTPM.jl",
-                                    package = "RiboProfiler"),
-                        '")',collapse = "")
-
-  # choose function
-  CalculateCountTPM <- JuliaCall::julia_eval(script_path)
-
-  # excute function
-  lapply(seq_along(sam_file), function(x){
-    outFile_tmp = paste("4.expression-data/",out_file[x],sep = "")
-    CalculateCountTPM(inputFile = sam_file[x],
-                      outputFile = outFile_tmp,
-                      inputType = type)
-    message(paste(sam_file[x]," has been processed!",sep = ""))
-  }) -> tmp
-
-  return(NULL)
-}
-
-
-#' Load expression data from text files
+#'   if(is.null(sample_name)){
+#'     sample_name <- sapply(strsplit(file,split = '\\.'),'[',1)
+#'   }else{
+#'     sample_name <- sample_name
+#'   }
 #'
-#' This function loads gene expression data from text files in a specified
-#' directory. It returns both count and TPM (transcripts per million) matrices
-#' for all samples.
+#'   # ============================================================================
+#'   # extract count data
+#'   lapply(1:length(file),function(x){
+#'     tmp <- data.table::fread(paste('4.expression-data/',file[x],sep = ''))[,-3]
+#'     # add sample
+#'     sample <- sample_name[x]
+#'     colnames(tmp) <- c("gene_name",sample)
 #'
-#' @param sample_name A character vector containing sample names. If NULL, the
-#' function will use the file names as sample names.
+#'     return(tmp)
+#'   }) -> count_list
 #'
-#' @return A list containing two matrices:
-#' \describe{
-#'   \item{count_matrix}{A matrix of gene expression counts for all samples.}
-#'   \item{tpm_matrix}{A matrix of gene expression TPM values for all samples.}
+#'   # merge
+#'   all_count <- Reduce(function(x,y,...){merge(x,y,by = "gene_name",all = TRUE,...)},count_list)
+#'   all_count[is.na(all_count)] <- 0
+#'
+#'   # ============================================================================
+#'   # extract tpm data
+#'   lapply(1:length(file),function(x){
+#'     tmp <- data.table::fread(paste('4.expression-data/',file[x],sep = ''))[,-2]
+#'     # add sample
+#'     sample <- sample_name[x]
+#'     colnames(tmp) <- c("gene_name",sample)
+#'
+#'     return(tmp)
+#'   }) -> tpm_list
+#'
+#'   # merge
+#'   all_tpm <- Reduce(function(x,y,...){merge(x,y,by = "gene_name",all = TRUE,...)},tpm_list)
+#'   all_tpm[is.na(all_tpm)] <- 0
+#'
+#'   # return
+#'   return(list(count_matrix = all_count,
+#'               tpm_matrix = all_tpm))
 #' }
-#'
-#' @export
-load_expression_data <- function(sample_name = NULL){
-  # load data
-  file <- list.files('4.expression-data/','.txt')
-  message("Expression input files: ")
-  message(paste0(file,sep = "\n"))
-
-  if(is.null(sample_name)){
-    sample_name <- sapply(strsplit(file,split = '\\.'),'[',1)
-  }else{
-    sample_name <- sample_name
-  }
-
-  # ============================================================================
-  # extract count data
-  lapply(1:length(file),function(x){
-    tmp <- data.table::fread(paste('4.expression-data/',file[x],sep = ''))[,-3]
-    # add sample
-    sample <- sample_name[x]
-    colnames(tmp) <- c("gene_name",sample)
-
-    return(tmp)
-  }) -> count_list
-
-  # merge
-  all_count <- Reduce(function(x,y,...){merge(x,y,by = "gene_name",all = TRUE,...)},count_list)
-  all_count[is.na(all_count)] <- 0
-
-  # ============================================================================
-  # extract tpm data
-  lapply(1:length(file),function(x){
-    tmp <- data.table::fread(paste('4.expression-data/',file[x],sep = ''))[,-2]
-    # add sample
-    sample <- sample_name[x]
-    colnames(tmp) <- c("gene_name",sample)
-
-    return(tmp)
-  }) -> tpm_list
-
-  # merge
-  all_tpm <- Reduce(function(x,y,...){merge(x,y,by = "gene_name",all = TRUE,...)},tpm_list)
-  all_tpm[is.na(all_tpm)] <- 0
-
-  # return
-  return(list(count_matrix = all_count,
-              tpm_matrix = all_tpm))
-}

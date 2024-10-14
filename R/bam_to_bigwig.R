@@ -94,3 +94,66 @@ ribo_bam_to_bw <- function(bam_file = NULL,
 
   message(paste0(bam_file,"has been processed!"))
 }
+
+
+
+
+
+
+#' Convert BAM files to BigWig format with RPM normalization
+#'
+#' This function reads BAM files, calculates coverage, performs RPM normalization,
+#' and exports the resulting data to BigWig files.
+#'
+#' @param bam_files A character vector of paths to BAM files.
+#' @param output_dir A character string specifying the directory to save the BigWig files.
+#'                   If NULL, the current working directory is used.
+#' @param output_prefix A character vector of prefixes for output BigWig files. If NULL,
+#'                      the prefix is derived from the BAM filename.
+#'
+#' @return The function does not return anything. It outputs BigWig files to the specified directory.
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' bam_files <- c("sample1.bam", "sample2.bam")
+#' output_dir <- "output"
+#' bam_to_bw(bam_files, output_dir)
+#' }
+bam_to_bw <- function(bam_files = NULL,
+                      output_dir = NULL,
+                      output_prefix = NULL){
+  # create dir
+  if(!is.null(output_dir)){
+    if(!endsWith(output_dir,"/")){
+      output_dir_name <- paste(output_dir,"/",sep = "")
+    }
+    dir.create(output_dir_name,showWarnings = F)
+  }
+
+  # export bigwig
+  # x = 1
+  lapply(seq_along(bam_files),function(x){
+    bam <- GenomicAlignments::readGAlignments(bam_files[x])
+    cov <- GenomicAlignments::coverage(bam)
+
+    # total mapped reads
+    total_reads <- sum(Rsamtools::idxstatsBam(bam_files[x])$mapped)
+
+    # RPM normalization
+    rpm_cov <- cov / total_reads * 1e6
+
+    if(is.null(output_prefix)){
+      tpn <- unlist(strsplit(bam_files[x],split = "/|.bam"))
+      sample_name <- tpn[length(tpn)]
+    }else{
+      sample_name <- output_prefix[x]
+    }
+
+    # output
+    rtracklayer::export.bw(object = rpm_cov,
+                           con = paste(output_dir,sample_name,".bw",sep = ""))
+
+    message(paste(bam_files[x],"has been processed!"))
+  })
+}

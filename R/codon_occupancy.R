@@ -8,14 +8,14 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 #' @param object ribosomeObj object.
 #' @param min_counts An integer specifying the minimum number of counts required for a transcript to be included
 #'        in the analysis. Default is 32.
+#' @param method Which method to calcualte codon occupancy, "1" means sum of codon density,
+#' ”2“ means relative density normalized by codon frequency along each gene and averaged
+#' across all codons,"reldist" means transcript is divided by 100 bins and calculate codon
+#' occupancy with relative distance for each codon.
 #' @param norm_type The nomalization methods for ribosome density. "average" is calculated by
 #' the count at each position divided by mean density across cds region. "rpm"
 #' is calculated by the count at each position divided by the total counts and multiplied with 10^6.
 #' Default is "average".
-#' @param upstream_codon_exclude An integer specifying the number of codons to exclude from the start of the coding sequence.
-#'        Default is 5.
-#' @param downstream_codon_exclude An integer specifying the number of codons to exclude from the end of the coding sequence.
-#'        Default is 0.
 #' @param ... Useless args.
 #'
 #' @details This function performs the following steps:
@@ -35,9 +35,8 @@ globalVariables(c("Offsets", "abbreviation", "amino", "bamFiles", "bamLegends", 
 setGeneric("codon_occupancy",
            function(object,
                     min_counts = 32,
-                    norm_type = c("average","rpm"),
-                    upstream_codon_exclude = 0,
-                    downstream_codon_exclude = 0, ...) standardGeneric("codon_occupancy"))
+                    method = c("1","2","reldist"),
+                    norm_type = c("average","rpm"), ...) standardGeneric("codon_occupancy"))
 
 
 
@@ -51,10 +50,10 @@ setMethod("codon_occupancy",
           signature(object = "ribosomeObj"),
           function(object,
                    min_counts = 32,
-                   norm_type = c("average","rpm"),
-                   upstream_codon_exclude = 0,
-                   downstream_codon_exclude = 0,...){
+                   method = c("1","2","reldist"),
+                   norm_type = c("average","rpm"),...){
             norm_type <- match.arg(norm_type,c("average","rpm"))
+            method <- match.arg(method,c("1","2","reldist"))
             # ============================================================================
             # gene annotation
             # ============================================================================
@@ -98,7 +97,7 @@ setMethod("codon_occupancy",
                 dplyr::filter(cdsft == 1) %>%
                 dplyr::mutate(trans_pos = trans_pos - `5UTR_length`) %>%
                 # fiter trans_pos in cds region
-                dplyr::filter(trans_pos > upstream_codon_exclude*3  & trans_pos <= CDS_length - downstream_codon_exclude*3) %>%
+                dplyr::filter(trans_pos > 0  & trans_pos <= CDS_length) %>%
                 # transpos trans_pos into codon pos
                 dplyr::mutate(codon_pos = dplyr::if_else(trans_pos%%3 == 0, trans_pos/3,trans_pos%/%3 + 1)) %>%
                 dplyr::group_by(trans_id,codon_pos) %>%
@@ -113,18 +112,51 @@ setMethod("codon_occupancy",
               # get codon seq and average density
               # ============================================================================
               # run code
-              pyscript.path = system.file("extdata", "CodonOccupancy.py", package = "RiboProfiler")
-              reticulate::source_python(pyscript.path)
+              if(method == "1"){
+                pyscript.path = system.file("extdata", "CodonOccupancy.py", package = "RiboProfiler")
 
-              if(length(object@CDS.sequence) != 0){
-                suppressMessages(
-                  reticulate::py$codonOccupancy(cds_fasta_file = object@CDS.sequence,
-                                                codon_pos_exp_file = fname,
-                                                output_file = paste("codon_occupancy/",sp[x],"_codon_occupancy.txt",sep = ""))
-                )
+                reticulate::source_python(pyscript.path)
+
+                if(length(object@CDS.sequence) != 0){
+                  suppressMessages(
+                    reticulate::py$codonOccupancy(cds_fasta_file = object@CDS.sequence,
+                                                  codon_pos_exp_file = fname,
+                                                  output_file = paste("codon_occupancy/",sp[x],"_codon_occupancy.txt",sep = ""))
+                  )
+                }else{
+                  message("Please run fetch_sequence first to get cds fasta file!")
+                }
+              }else if(method == "2"){
+                pyscript.path = system.file("extdata", "CodonOccupancy2.py", package = "RiboProfiler")
+
+                reticulate::source_python(pyscript.path)
+
+                if(length(object@CDS.sequence) != 0){
+                  suppressMessages(
+                    reticulate::py$codonOccupancy2(cds_fasta_file = object@CDS.sequence,
+                                                   codon_pos_exp_file = fname,
+                                                   output_file = paste("codon_occupancy/",sp[x],"_codon_occupancy.txt",sep = ""))
+                  )
+                }else{
+                  message("Please run fetch_sequence first to get cds fasta file!")
+                }
               }else{
-                message("Please run fetch_sequence first to get cds fasta file!")
+                pyscript.path = system.file("extdata", "codonRelativeDist.py", package = "RiboProfiler")
+
+                reticulate::source_python(pyscript.path)
+
+                if(length(object@CDS.sequence) != 0){
+                  suppressMessages(
+                    reticulate::py$codonRelativeDist(cds_fasta_file = object@CDS.sequence,
+                                                     codon_pos_exp_file = fname,
+                                                     output_file = paste("codon_occupancy/",sp[x],"_codon_relDist.txt",sep = ""))
+                  )
+                }else{
+                  message("Please run fetch_sequence first to get cds fasta file!")
+                }
               }
+
+
 
             })
           }

@@ -33,7 +33,7 @@ function ribo_bam_to_bw(;bam_file,output_file,seq_type,assignType,normalization,
 
         # check read and offset length
         if length(read_len_select) == length(read_offset_select)
-            for i in range(1,4)
+            for i in range(1,length(read_len_select))
                 offset_dict[read_len_select[i]] = read_offset_select[i]
             end
         else
@@ -200,7 +200,7 @@ function ribo_bam_to_bw2(;bam_file,output_file,seq_type,assignType,normalization
 
         # check read and offset length
         if length(read_len_select) == length(read_offset_select)
-            for i in range(1,4)
+            for i in range(1,length(read_len_select))
                 offset_dict[read_len_select[i]] = read_offset_select[i]
             end
         else
